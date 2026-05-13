@@ -1,6 +1,7 @@
 workstream_impact:
   id: impact.evidence_visible_to_teacher
   kind: impact_map
+  name: Evidence Visible To Teacher Impact Map
   active_slice: slice.evidence_visible_to_teacher
   status: draft
   confidence: medium
@@ -9,6 +10,7 @@ workstream_impact:
   source_refs:
     - fixture.top_down.learning_improvement
   relationships: []
+  open_questions: []
   directly_impacted:
     - teacher-workspace
     - evidence-access

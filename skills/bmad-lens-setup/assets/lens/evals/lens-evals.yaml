@@ -21,6 +21,19 @@ evals:
     expected:
       - includes: [active_slice, included_scope, explicit_exclusions, required_capabilities, decisions, risks, acceptance_evidence]
       - excludes: [adjacent_future_slices, speculative_platform_architecture]
+      - emits: [bmad-packet.md, bmad-packet.yaml]
+  - id: lens.eval.context_gate_blocks_prd
+    input: Discovery has weak journey readiness and unresolved evidence definitions.
+    expected:
+      - route_to: bmad-lens-context-check
+      - blocks: bmad-create-prd
+      - writes: [_bmad-output/lens/gates/context-sufficiency-1.md, _bmad-output/lens/gates/context-score.yaml]
+  - id: lens.eval.workstream_impact_projection
+    input: Slice impact map has impacted workstreams, conflicting workstreams, shared files, and shared contracts.
+    expected:
+      - relationships: [impacted_by, possibly_conflicts_with, touches_file, touches_contract]
+      - traceability: [impacted_workstreams, shared_files, shared_contracts]
+      - warning: workstream_impact_gate
   - id: lens.eval.guard_story_traceability
     input: One story traces to active slice and one expands scope without trace.
     expected:
@@ -34,9 +47,9 @@ evals:
       - severity: high
       - suggests_bmad_correct_course: true
   - id: lens.eval.doctor_invalid_topology
-    input: Derived map has duplicate IDs and orphaned relationship.
+    input: Derived map has duplicate IDs, orphaned relationship, missing source refs, stale records, and an unsynced BMAD packet.
     expected:
-      - detects: [duplicate_ids, orphaned_relationship]
+      - detects: [duplicate_id, orphan_ref, missing_source_refs, stale_or_needs_review, bmad_sync_gap]
       - writes: [_bmad-output/lens/graph/warnings.yaml, _bmad-output/lens/graph/doctor-report.md]
   - id: lens.eval.auspex_read_only_status
     input: Derived Map exists with active slices, risks, and Salmon signals.
@@ -44,3 +57,8 @@ evals:
       - reads_from: _bmad-output/lens/graph/derived-map.json
       - writes: [_bmad-output/lens/auspex/status.yaml, _bmad-output/lens/auspex/status.json, _bmad-output/lens/auspex/stakeholder-summary.md]
       - mutates_source_truth: false
+  - id: lens.eval.project_context_init
+    input: Run lens init in a project without _bmad-output/project-context.md.
+    expected:
+      - writes: _bmad-output/project-context.md
+      - includes: [Traceability Rule, Scope Rule, Architecture Rule, Upstream Change Rule, Source Truth Rule]

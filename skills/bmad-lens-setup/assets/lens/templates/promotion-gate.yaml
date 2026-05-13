@@ -1,4 +1,14 @@
 promotion_gate:
+  id: promotion_gate.example
+  kind: promotion_gate
+  name: Example Promotion Gate
+  status: draft
+  confidence: medium
+  created_at: "YYYY-MM-DD"
+  updated_at: "YYYY-MM-DD"
+  source_refs: []
+  relationships: []
+  open_questions: []
   candidate: capability.example
   promoted_from: []
   evidence: []

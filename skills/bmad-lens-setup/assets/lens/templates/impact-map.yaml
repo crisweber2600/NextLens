@@ -1,6 +1,7 @@
 workstream_impact:
   id: impact.slice.example
   kind: impact_map
+  name: Example Slice Impact Map
   active_slice: slice.example
   status: draft
   confidence: medium
@@ -8,6 +9,7 @@ workstream_impact:
   updated_at: "YYYY-MM-DD"
   source_refs: []
   relationships: []
+  open_questions: []
   directly_impacted: []
   possibly_conflicting: []
   shared_files: []

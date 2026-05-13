@@ -1,6 +1,16 @@
 story:
   id: story.example
+  kind: story
+  name: Example Story
+  status: planned
+  confidence: medium
+  created_at: "YYYY-MM-DD"
+  updated_at: "YYYY-MM-DD"
+  source_refs: []
+  relationships: []
+  open_questions: []
   bmad_story_file: _bmad-output/planning-artifacts/epics/epic-001/story-example.md
+  active_slice: slice.example
 lens_trace:
   system: null
   outcome: null
@@ -8,14 +18,14 @@ lens_trace:
   slice: slice.example
   capabilities: []
 guard_result:
-  status: pass|fail|needs_review
+  status: needs_review
 checks:
   - name: story_traces_to_active_slice
-    status: pending
+    status: needs_review
   - name: story_does_not_expand_scope
-    status: pending
+    status: needs_review
   - name: acceptance_evidence_present
-    status: pending
+    status: needs_review
   - name: privacy_boundary_acknowledged
-    status: pending
+    status: needs_review
 salmon_recommended: false

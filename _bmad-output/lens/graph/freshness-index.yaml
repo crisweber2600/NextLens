@@ -1,6 +1,6 @@
-generated_at: '2026-05-13T20:20:44.582274+00:00'
+generated_at: '2026-05-13T21:35:38.075154+00:00'
 stale_after_days: 90
-files_indexed: 12
+files_indexed: 17
 items:
 - id: adjacency.download_model_images.to_generate_model_description
   kind: adjacency
@@ -26,6 +26,12 @@ items:
   updated_at: '2026-05-13'
   signals: []
   source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/bmad-packet.yaml
+- id: epoch.learning_improvement.001
+  kind: discovery_epoch
+  validity: unknown
+  updated_at: '2026-05-13'
+  signals: []
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/discovery-epoch.yaml
 - id: impact.evidence_visible_to_teacher
   kind: impact_map
   validity: unknown
@@ -80,6 +86,12 @@ items:
   updated_at: '2026-05-13'
   signals: []
   source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/slice.yaml
+- id: story.evidence_detail_view
+  kind: story
+  validity: unknown
+  updated_at: '2026-05-13'
+  signals: []
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/story-guard.yaml
 - id: story.evidence_detail_view
   kind: story
   validity: unknown

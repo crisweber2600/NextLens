@@ -1,0 +1,39 @@
+discovery_epoch:
+  id: epoch.learning_improvement.001
+  kind: discovery_epoch
+  name: Learning Improvement Initial Discovery
+  status: active
+  confidence: medium
+  created_at: "2026-05-13"
+  updated_at: "2026-05-13"
+  source_refs:
+    - fixture.top_down.learning_improvement
+  relationships: []
+  open_questions:
+    - What counts as student evidence?
+    - Which support staff need limited evidence visibility?
+  system: system.learning_improvement_platform
+  purpose: Discover enough context to identify the first validated teacher outcome and slice.
+  sessions:
+    - session.learning_improvement.initial
+  current_focus:
+    level: slice
+    target: slice.evidence_visible_to_teacher
+  context_sufficiency:
+    system_thesis: medium
+    role_map: medium
+    stakeholder_map: medium
+    outcome_matrix: medium
+    journey_map: medium
+    slice_readiness: ready
+    architecture_readiness: needs_review
+    bmad_prd_readiness: blocked
+  recommended_next_bmad_skills:
+    - bmad-advanced-elicitation
+    - bmad-create-prd
+  recommended_next_lens_skills:
+    - bmad-lens-context-check
+    - bmad-lens-prepare-bmad
+  promotion_candidates: []
+  blockers:
+    - decision.teacher_access_policy

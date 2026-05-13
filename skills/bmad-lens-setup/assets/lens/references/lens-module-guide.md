@@ -100,7 +100,7 @@ Confidence levels are low, medium, and high. AI hypotheses must not be treated a
 
 ## Core Entities
 
-LENS supports these entity kinds: system, system_thesis, discovery_epoch, session, source, extraction, slice, artifact, adjacency, relationship, role, stakeholder, outcome, operating_loop, journey, journey_step, capability, domain, service, workstream, program, decision, assumption, unknown, risk, evidence, salmon_signal, auspex_status, bmad_packet, and validation_result.
+LENS supports these entity kinds: system, system_thesis, discovery_epoch, session, source, extraction, slice, artifact, adjacency, relationship, role, stakeholder, outcome, operating_loop, journey, journey_step, capability, domain, service, workstream, program, decision, assumption, unknown, risk, evidence, impact_map, promotion_gate, story, implementation_evidence, salmon_signal, auspex_status, bmad_packet, and validation_result.
 
 Minimum metadata for major entities:
 
@@ -233,9 +233,19 @@ LENS feeds BMAD. LENS does not replace BMAD.
 
 `bmad-lens-context-check` must be able to say: "We are not ready for PRD yet." It evaluates system thesis, role map, stakeholder map, outcome matrix, operating loops, journey readiness, slice readiness, capability readiness, architecture readiness, BMAD PRD readiness, open questions, unresolved decisions, high-severity risks, research gaps, and unchallenged assumptions.
 
+The module help registration marks context-check as required before `bmad-lens-prepare-bmad`. When the gate fails, continue discovery, elicitation, review, or research instead of jumping to BMAD PRD generation.
+
 ## Focused BMAD Packets
 
 A LENS BMAD packet includes only the active slice context needed by BMAD. It excludes adjacent future slices, unvalidated assumptions, speculative architecture, and unpromoted capability clusters.
+
+`bmad-lens-prepare-bmad` emits two aligned forms: `bmad-packet.md` for BMAD/human review and `bmad-packet.yaml` for graph rebuild, traceability, validation, and repeatable checks.
+
+## Impact Maps
+
+`bmad-lens-analyze-impact` records directly impacted workstreams, possibly conflicting workstreams, shared files, shared contracts, produced and consumed artifacts, tests, observability, rollout controls, data/privacy/policy boundaries, architecture decisions, and the related workstream gate result.
+
+`bmad-lens-map-rebuild` projects those fields into Derived Map relationships such as `impacted_by`, `possibly_conflicts_with`, `touches_file`, and `touches_contract`, and it adds traceability fields for impacted workstreams, shared files, and shared contracts.
 
 ## Implementation Guard
 
@@ -255,7 +265,7 @@ Salmon does not replace BMAD correct-course. It detects and propagates upstream 
 
 ## Doctor
 
-Doctor audits orphaned entities, missing source references, missing IDs, duplicate IDs, mismatched parent-child refs, missing ledgers, stale ledgers, unresolved high-severity decisions, completed slices not promoted when warranted, unsynced BMAD artifacts, untraced stories, derived map inconsistencies, relationship contradictions, and freshness metadata.
+Doctor audits orphan references, missing source references, duplicate IDs, self-loop or missing-type relationship anomalies, missing ledgers, stale or needs-review records, unresolved promoted references, untraced stories, unsynced BMAD packets, unresolved decisions, workstream impact gates, derived map inconsistencies, relationship contradictions, and freshness metadata.
 
 ## Auspex
 

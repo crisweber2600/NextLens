@@ -8,11 +8,13 @@ import json
 import sys
 from pathlib import Path
 
+import yaml
+
 REQUIRED_SKILLS = [
     'bmad-lens-setup','bmad-lens-help','bmad-lens-intake','bmad-lens-slice-new','bmad-lens-slice-frame','bmad-lens-slice-scope','bmad-lens-detect-adjacency','bmad-lens-detect-repetition','bmad-lens-suggest-promotion','bmad-lens-discover','bmad-lens-capture','bmad-lens-synthesize','bmad-lens-context-check','bmad-lens-research-plan','bmad-lens-map-system','bmad-lens-map-outcomes','bmad-lens-map-loops','bmad-lens-map-journeys','bmad-lens-slice-journey','bmad-lens-map-capabilities','bmad-lens-analyze-impact','bmad-lens-promote-landscape','bmad-lens-map-rebuild','bmad-lens-prepare-bmad','bmad-lens-sync-bmad','bmad-lens-guard-story','bmad-lens-validate-slice','bmad-lens-validate-journey','bmad-lens-validate-outcome','bmad-lens-salmon','bmad-lens-doctor','bmad-lens-auspex'
 ]
-REQUIRED_ENTITIES = ['system','system_thesis','discovery_epoch','session','source','extraction','slice','artifact','adjacency','relationship','role','stakeholder','outcome','operating_loop','journey','journey_step','capability','domain','service','workstream','program','decision','assumption','unknown','risk','evidence','salmon_signal','auspex_status','bmad_packet','validation_result']
-REQUIRED_TEMPLATES = ['slice.yaml','discovery-epoch.yaml','relationship.yaml','promotion-gate.yaml','impact-map.yaml','bmad-packet.md','context-sufficiency.md','story-guard.yaml','salmon-signal.yaml','validation-result.yaml','doctor-report.md','auspex-status.yaml','journey.yaml','journey.md','journey-map.mmd']
+REQUIRED_ENTITIES = ['system','system_thesis','discovery_epoch','session','source','extraction','slice','artifact','adjacency','relationship','role','stakeholder','outcome','operating_loop','journey','journey_step','capability','domain','service','workstream','program','decision','assumption','unknown','risk','evidence','impact_map','promotion_gate','story','implementation_evidence','salmon_signal','auspex_status','bmad_packet','validation_result']
+REQUIRED_TEMPLATES = ['slice.yaml','discovery-epoch.yaml','relationship.yaml','promotion-gate.yaml','impact-map.yaml','bmad-packet.yaml','bmad-packet.md','context-sufficiency.md','story-guard.yaml','salmon-signal.yaml','validation-result.yaml','doctor-report.md','auspex-status.yaml','journey.yaml','journey.md','journey-map.mmd','project-context.md']
 REQUIRED_FIXTURES = {
     'fixtures/top-down/evidence-visible-to-teacher': ['slice.yaml', 'journey.yaml', 'impact-map.yaml'],
     'fixtures/bottom-up/download-model-images': ['slice.yaml', 'adjacency.yaml', 'promotion-gate.yaml'],
@@ -21,10 +23,41 @@ REQUIRED_TESTS = [
     'scripts/tests/test_lens_artifact_ops.py',
     'scripts/tests/test_validate_lens_assets.py',
 ]
+REQUIRED_METADATA = ['id', 'kind', 'name', 'status', 'confidence', 'created_at', 'updated_at', 'source_refs', 'relationships', 'open_questions']
+SEMANTIC_ROOTS = ['templates', 'fixtures']
 
 
 def fail(findings, category, message):
     findings.append({'category': category, 'message': message})
+
+
+def yaml_docs(path: Path):
+    if path.suffix not in {'.yaml', '.yml'}:
+        return []
+    return [doc for doc in yaml.safe_load_all(path.read_text(encoding='utf-8')) if doc]
+
+
+def iter_dicts(data):
+    if isinstance(data, dict):
+        yield data
+        for value in data.values():
+            yield from iter_dicts(value)
+    elif isinstance(data, list):
+        for value in data:
+            yield from iter_dicts(value)
+
+
+def manifest_skills(root: Path) -> list[str]:
+    marketplace = root / '.claude-plugin' / 'marketplace.json'
+    if not marketplace.is_file():
+        return REQUIRED_SKILLS
+    data = json.loads(marketplace.read_text(encoding='utf-8'))
+    skills = []
+    for plugin in data.get('plugins', []):
+        if plugin.get('name') == 'lens':
+            for path in plugin.get('skills', []):
+                skills.append(Path(path).name)
+    return skills or REQUIRED_SKILLS
 
 
 def main() -> int:
@@ -36,8 +69,9 @@ def main() -> int:
     skills = root / 'skills'
     setup = skills / 'bmad-lens-setup'
     assets = setup / 'assets' / 'lens'
+    required_skills = manifest_skills(root)
 
-    for skill in REQUIRED_SKILLS:
+    for skill in required_skills:
         if not (skills / skill / 'SKILL.md').is_file():
             fail(findings, 'skills', f'missing skill {skill}')
 
@@ -45,7 +79,7 @@ def main() -> int:
     if help_csv.is_file():
         rows = list(csv.DictReader(help_csv.open(encoding='utf-8')))
         csv_skills = {r.get('skill','') for r in rows}
-        for skill in REQUIRED_SKILLS:
+        for skill in required_skills:
             if skill not in csv_skills:
                 fail(findings, 'module-help', f'missing help entry for {skill}')
         codes = {}
@@ -71,7 +105,7 @@ def main() -> int:
     if marketplace.is_file():
         data = json.loads(marketplace.read_text(encoding='utf-8'))
         text = json.dumps(data)
-        for skill in REQUIRED_SKILLS:
+        for skill in required_skills:
             if f'./skills/{skill}' not in text:
                 fail(findings, 'marketplace', f'marketplace missing {skill}')
     else:
@@ -81,15 +115,35 @@ def main() -> int:
     if schema_path.is_file():
         schema = json.loads(schema_path.read_text(encoding='utf-8'))
         entities = set(schema.get('properties', {}).get('kind', {}).get('enum', []))
+        statuses = set(schema.get('properties', {}).get('status', {}).get('enum', []))
         for entity in REQUIRED_ENTITIES:
             if entity not in entities:
                 fail(findings, 'schema', f'missing entity {entity}')
     else:
         fail(findings, 'schema', 'missing lens-entity.schema.json')
+        entities = set()
+        statuses = set()
 
     for template in REQUIRED_TEMPLATES:
         if not (assets / 'templates' / template).is_file():
             fail(findings, 'templates', f'missing template {template}')
+
+    for semantic_root in SEMANTIC_ROOTS:
+        for path in sorted((assets / semantic_root).rglob('*.yaml')):
+            for doc in yaml_docs(path):
+                for item in iter_dicts(doc):
+                    if 'id' not in item:
+                        continue
+                    kind = item.get('kind')
+                    status = item.get('status')
+                    if kind and kind not in entities:
+                        fail(findings, 'semantic', f'{path} uses kind {kind} not allowed by schema')
+                    if status and status not in statuses:
+                        fail(findings, 'semantic', f'{path} uses status {status} not allowed by schema')
+                    if kind in {'relationship', 'promotion_gate', 'impact_map', 'validation_result', 'salmon_signal', 'bmad_packet', 'slice', 'journey', 'discovery_epoch', 'story'}:
+                        for key in REQUIRED_METADATA:
+                            if key not in item:
+                                fail(findings, 'semantic', f'{path} entity {item.get("id")} missing metadata key {key}')
 
     directory_map = assets / 'schemas' / 'directory-map.yaml'
     if directory_map.is_file():
@@ -106,9 +160,30 @@ def main() -> int:
             if not (assets / fixture_root / file_name).is_file():
                 fail(findings, 'fixtures', f'missing {fixture_root}/{file_name}')
 
+    top_down = assets / 'fixtures' / 'top-down' / 'evidence-visible-to-teacher'
+    for file_name in ['discovery-epoch.yaml', 'bmad-packet.yaml', 'bmad-packet.md', 'story-guard.yaml', 'validation-result.yaml', 'salmon-signal.yaml']:
+        if not (top_down / file_name).is_file():
+            fail(findings, 'fixtures', f'missing top-down evidence-visible-to-teacher/{file_name}')
+
+    packet_yaml = assets / 'templates' / 'bmad-packet.yaml'
+    packet_md = assets / 'templates' / 'bmad-packet.md'
+    if packet_yaml.is_file() and packet_md.is_file():
+        packet_text = packet_yaml.read_text(encoding='utf-8') + '\n' + packet_md.read_text(encoding='utf-8')
+        for phrase in ['active_slice', 'included_scope', 'explicit_exclusions', 'required_capabilities', 'required_decisions', 'risks', 'acceptance_evidence', 'recommended_bmad_next_step']:
+            if phrase not in packet_text and phrase.replace('_', ' ').title() not in packet_text:
+                fail(findings, 'templates', f'BMAD packet templates missing {phrase}')
+
     for test_path in REQUIRED_TESTS:
         if not (assets / test_path).is_file():
             fail(findings, 'tests', f'missing {test_path}')
+
+    for setup_test in [
+        root / 'skills' / 'bmad-lens-setup' / 'scripts' / 'tests' / 'test_merge_config.py',
+        root / 'skills' / 'bmad-lens-setup' / 'scripts' / 'tests' / 'test_merge_help_csv.py',
+        root / 'skills' / 'bmad-lens-setup' / 'scripts' / 'tests' / 'test_cleanup_legacy.py',
+    ]:
+        if not setup_test.is_file():
+            fail(findings, 'tests', f'missing {setup_test.relative_to(root)}')
 
     evals = assets / 'evals' / 'lens-evals.yaml'
     if evals.is_file():

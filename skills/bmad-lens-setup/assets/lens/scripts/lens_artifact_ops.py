@@ -93,6 +93,10 @@ def fixtures_root(project_root: Path) -> Path:
     return project_root / "skills" / "bmad-lens-setup" / "assets" / "lens" / "fixtures"
 
 
+def asset_root(project_root: Path) -> Path:
+    return project_root / "skills" / "bmad-lens-setup" / "assets" / "lens"
+
+
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -137,6 +141,17 @@ def source_files(project_root: Path) -> list[Path]:
 
 def is_id(value: Any) -> bool:
     return isinstance(value, str) and bool(IDISH_RE.match(value.strip()))
+
+
+def slug(value: Any) -> str:
+    text = str(value).strip()
+    text = re.sub(r"[^A-Za-z0-9]+", "_", text).strip("_").lower()
+    return text or "unknown"
+
+
+def id_or_prefixed(value: Any, prefix: str) -> str:
+    text = str(value).strip()
+    return text if is_id(text) else f"{prefix}.{slug(text)}"
 
 
 def as_list(value: Any) -> list[Any]:
@@ -227,6 +242,10 @@ def add_trace(projection: Projection, slice_id: str, key: str, value: Any) -> No
             "stories": [],
             "validation_results": [],
             "salmon_signals": [],
+            "impacted_workstreams": [],
+            "conflicting_workstreams": [],
+            "shared_files": [],
+            "shared_contracts": [],
         },
     )
     for item in as_list(value):
@@ -238,6 +257,14 @@ def collect_relationships(projection: Projection, item: dict[str, Any], path: Pa
     entity_id = str(item.get("id", "")).strip()
 
     if item.get("from") and item.get("to"):
+        if not (item.get("type") or item.get("reason")):
+            add_warning(
+                projection,
+                "medium",
+                "relationship_missing_type",
+                id=entity_id or None,
+                source_path=str(path),
+            )
         rel_type = str(item.get("type") or item.get("reason") or "related_to")
         add_relationship(projection, str(item["from"]), rel_type, str(item["to"]), path, evidence=entity_id or parent_key)
 
@@ -291,6 +318,38 @@ def collect_relationships(projection: Projection, item: dict[str, Any], path: Pa
             for target in as_list(value):
                 if target:
                     add_trace(projection, entity_id, trace_key, target)
+
+    active_slice_for_impact = item.get("active_slice")
+    if entity_kind(parent_key, item) == "impact_map" and is_id(active_slice_for_impact):
+        active_slice = str(active_slice_for_impact)
+        for target in as_list(item.get("directly_impacted")):
+            workstream = id_or_prefixed(target, "workstream")
+            add_relationship(projection, active_slice, "impacted_by", workstream, path, evidence="directly_impacted")
+            add_trace(projection, active_slice, "impacted_workstreams", workstream)
+        for target in as_list(item.get("possibly_conflicting")):
+            workstream = id_or_prefixed(target, "workstream")
+            add_relationship(projection, active_slice, "possibly_conflicts_with", workstream, path, evidence="possibly_conflicting")
+            add_trace(projection, active_slice, "conflicting_workstreams", workstream)
+        for target in as_list(item.get("shared_files")):
+            file_ref = id_or_prefixed(target, "file")
+            add_relationship(projection, active_slice, "touches_file", file_ref, path, evidence="shared_files")
+            add_trace(projection, active_slice, "shared_files", file_ref)
+        for target in as_list(item.get("shared_contracts")):
+            contract_ref = id_or_prefixed(target, "contract")
+            add_relationship(projection, active_slice, "touches_contract", contract_ref, path, evidence="shared_contracts")
+            add_trace(projection, active_slice, "shared_contracts", contract_ref)
+        gate = item.get("related_workstream_gate")
+        if isinstance(gate, dict) and gate.get("result") not in {None, "no_impact"}:
+            add_warning(
+                projection,
+                "medium",
+                "workstream_impact_gate",
+                id=entity_id,
+                active_slice=active_slice,
+                result=gate.get("result"),
+                rationale=gate.get("rationale"),
+                source_path=str(path),
+            )
 
     if entity_id.startswith("slice."):
         add_trace(projection, entity_id, "systems", item.get("system"))
@@ -412,11 +471,30 @@ def add_warnings(projection: Projection, project_root: Path) -> None:
     for entity_id, paths in projection.duplicate_ids.items():
         add_warning(projection, "high", "duplicate_id", id=entity_id, paths=paths)
 
+    for node in projection.nodes:
+        if node["kind"] in {"slice", "journey", "relationship", "impact_map", "promotion_gate", "validation_result", "salmon_signal", "bmad_packet", "story"}:
+            source_path = Path(node["source_path"])
+            try:
+                data = load_structured_file(source_path)
+            except Exception:
+                data = {}
+            has_sources = False
+            for _, item in iter_dicts(data):
+                if str(item.get("id", "")).strip() == node["id"]:
+                    has_sources = bool(item.get("source_refs"))
+                    break
+            if not has_sources:
+                add_warning(projection, "medium", "missing_source_refs", id=node["id"], source_path=node["source_path"])
+
     for ref in sorted(relationship_refs(projection)):
         if is_id(ref) and ref not in known_ids:
             add_warning(projection, "high", "orphan_ref", ref=ref)
 
     for rel in projection.relationships:
+        if rel.get("from") == rel.get("to"):
+            add_warning(projection, "high", "relationship_self_loop", ref=rel.get("from"), source_path=rel.get("source_path"))
+        if not rel.get("type"):
+            add_warning(projection, "medium", "relationship_missing_type", ref=rel.get("from"), source_path=rel.get("source_path"))
         target = str(rel.get("to", ""))
         if target.startswith(("capability.", "domain.", "service.", "system.", "program.")) and target not in known_ids:
             add_warning(projection, "medium", "unresolved_promoted_ref", ref=target, source_path=rel.get("source_path"))
@@ -435,6 +513,12 @@ def add_warnings(projection: Projection, project_root: Path) -> None:
             has_rel = any(node["id"] in {rel["from"], rel["to"]} for rel in projection.relationships)
             if not traced and not has_rel:
                 add_warning(projection, "high", "untraced_story", id=node["id"], source_path=node["source_path"])
+        if node["kind"] == "decision" and node.get("status") in {"draft", "blocked", "needs_review"}:
+            add_warning(projection, "medium", "unresolved_decision", id=node["id"], status=node.get("status"), source_path=node["source_path"])
+        if node["kind"] == "bmad_packet":
+            packet_traced = any(node["id"] in record.get("bmad_artifacts", []) for record in projection.traceability.values())
+            if not packet_traced:
+                add_warning(projection, "medium", "bmad_sync_gap", id=node["id"], source_path=node["source_path"])
 
 
 def init(args) -> int:
@@ -446,7 +530,11 @@ def init(args) -> int:
         write_text(sources, "sources: []\n")
     project_context = Path(args.project_root) / "_bmad-output" / "project-context.md"
     if not project_context.exists():
-        write_text(project_context, "# Project Context for AI Agents\n\nThis project uses LENS for slice traceability and validation.\n")
+        template = asset_root(Path(args.project_root)) / "templates" / "project-context.md"
+        if template.exists():
+            write_text(project_context, template.read_text(encoding="utf-8"))
+        else:
+            write_text(project_context, "# Project Context for AI Agents\n\nThis project uses LENS for slice traceability and validation.\n")
     print(json.dumps({"status": "ok", "lens_root": str(root), "directories": len(DIRS)}, indent=2))
     return 0
 

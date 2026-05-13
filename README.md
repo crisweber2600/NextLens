@@ -35,7 +35,9 @@ Use `bmad-lens-discover` for a large ambiguous system idea. The top-down path is
 
 Use `bmad-lens-slice-new` for one useful bottom-up thing. A bottom-up slice can remain complete without a system, domain, service, capability, program, initiative, or roadmap.
 
-Use `bmad-lens-prepare-bmad` only after the active slice is focused enough to feed BMAD. Use `bmad-lens-guard-story`, `bmad-lens-validate-slice`, `bmad-lens-salmon`, `bmad-lens-doctor`, and `bmad-lens-auspex` during implementation and review.
+Use `bmad-lens-context-check` as the required gate before BMAD handoff. It can block PRD or architecture work when discovery is still weak.
+
+Use `bmad-lens-prepare-bmad` only after the active slice is focused enough to feed BMAD. It produces both `bmad-packet.md` for humans and `bmad-packet.yaml` for deterministic traceability. Use `bmad-lens-guard-story`, `bmad-lens-validate-slice`, `bmad-lens-salmon`, `bmad-lens-doctor`, and `bmad-lens-auspex` during implementation and review.
 
 ## No Growth Without Pressure
 
@@ -67,6 +69,8 @@ bmad-lens-discover
 Input: I want a school learning improvement platform where evidence helps teachers act.
 Next: capture -> synthesize -> context-check -> map outcomes -> map journeys -> slice journey -> prepare BMAD.
 ```
+
+Before BMAD planning, run `bmad-lens-analyze-impact`. Its impact map projects workstreams, conflicts, shared files, shared contracts, and related workstream gates into the Derived Map.
 
 Bottom-up growth:
 
@@ -139,6 +143,7 @@ Run direct script tests:
 
 ```bash
 pytest skills/bmad-lens-setup/assets/lens/scripts/tests -q
+pytest skills/bmad-lens-setup/scripts/tests -q
 ```
 
 Run artifact smoke tests:
@@ -151,5 +156,7 @@ python3 skills/bmad-lens-setup/assets/lens/scripts/lens_artifact_ops.py auspex -
 ```
 
 Module-level BMAD eval-runner inputs live in `evals/lens/evals.json` and `evals/lens/triggers.json`.
+
+`bmad-lens-doctor` performs deterministic checks for duplicate IDs, orphan references, missing source references, stale or needs-review records, missing ledger directories, unresolved promoted references, untraced stories, unsynced BMAD packet refs, relationship anomalies, unresolved decisions, and workstream impact gates.
 
 The module is self-contained and does not require any original PDF or uploaded chat files. NorthStar-like education examples are fixtures only; this repository does not scaffold a NorthStarET application.

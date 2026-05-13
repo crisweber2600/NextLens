@@ -56,7 +56,7 @@ Extract candidate entities and relationships from raw material. Mark each extrac
 
 ## bmad-lens-context-check
 
-Block premature PRD creation when readiness is low. Write `_bmad-output/lens/gates/context-sufficiency-{n}.md` and `_bmad-output/lens/gates/context-score.yaml`.
+Block premature PRD creation when readiness is low. This is the required LENS gate before `bmad-lens-prepare-bmad`; failing the gate should recommend more discovery, elicitation, review, or research. Write `_bmad-output/lens/gates/context-sufficiency-{n}.md` and `_bmad-output/lens/gates/context-score.yaml`.
 
 ## bmad-lens-research-plan
 
@@ -88,7 +88,7 @@ Derive capability candidates from journeys, slices, repeated pressure, and imple
 
 ## bmad-lens-analyze-impact
 
-Generate a slice impact map covering likely files, services, components, contracts, stories, workstreams, artifacts, tests, observability, rollout, data, privacy, policy, and architecture decisions.
+Generate a slice impact map covering likely files, services, components, contracts, stories, workstreams, artifacts, tests, observability, rollout, data, privacy, policy, and architecture decisions. Include directly impacted workstreams, possibly conflicting workstreams, shared files, shared contracts, and a related workstream gate result.
 
 ## bmad-lens-promote-landscape
 
@@ -100,7 +100,7 @@ Regenerate Derived Map projections from archive and landscape. Do not hand-edit 
 
 ## bmad-lens-prepare-bmad
 
-Prepare a focused BMAD packet for the active slice. Include active slice goal, included scope, explicit exclusions, required capabilities, risks, decisions, and acceptance evidence. Exclude adjacent future slices and speculative architecture.
+Prepare a focused BMAD packet for the active slice. Include active slice goal, included scope, explicit exclusions, required capabilities, risks, decisions, and acceptance evidence. Exclude adjacent future slices and speculative architecture. Emit both Markdown and YAML packet forms from the same slice context.
 
 ## bmad-lens-sync-bmad
 
@@ -128,7 +128,7 @@ Raise an upstream correction signal when implementation reveals false assumption
 
 ## bmad-lens-doctor
 
-Audit topology and write graph warnings and doctor report. Use deterministic checks first, then judgment-based relationship contradiction review.
+Audit topology and write graph warnings and doctor report. Deterministic checks include duplicate IDs, orphan references, missing source refs, stale or needs-review records, missing ledger directories, unresolved promoted references, untraced stories, BMAD sync gaps, relationship anomalies, unresolved decisions, and workstream impact gates.
 
 ## bmad-lens-auspex
 

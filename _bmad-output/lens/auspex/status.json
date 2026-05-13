@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-05-13T20:20:51.405734+00:00",
+  "generated_at": "2026-05-13T21:35:42.326096+00:00",
   "source_truth": false,
   "derived_map": "_bmad-output/lens/graph/derived-map.json",
-  "node_count": 15,
-  "relationship_count": 27,
-  "warning_count": 21,
+  "node_count": 17,
+  "relationship_count": 41,
+  "warning_count": 37,
   "active_outcomes": [
     {
       "id": "outcome.teacher_turns_evidence_into_action",
@@ -78,6 +78,15 @@
   "blockers": [
     {
       "severity": "high",
+      "type": "duplicate_id",
+      "id": "story.evidence_detail_view",
+      "paths": [
+        "skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/story-guard.yaml",
+        "skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/story.yaml"
+      ]
+    },
+    {
+      "severity": "high",
       "type": "orphan_ref",
       "ref": "artifact.model_image_set"
     },
@@ -119,6 +128,31 @@
     {
       "severity": "high",
       "type": "orphan_ref",
+      "ref": "contract.evidenceartifact"
+    },
+    {
+      "severity": "high",
+      "type": "orphan_ref",
+      "ref": "contract.evidencesource"
+    },
+    {
+      "severity": "high",
+      "type": "orphan_ref",
+      "ref": "contract.teacheraccesspolicy"
+    },
+    {
+      "severity": "high",
+      "type": "orphan_ref",
+      "ref": "file.apps_teacher_src_evidence_evidenceinbox_tsx"
+    },
+    {
+      "severity": "high",
+      "type": "orphan_ref",
+      "ref": "file.packages_evidence_contracts_src_evidenceartifact_ts"
+    },
+    {
+      "severity": "high",
+      "type": "orphan_ref",
       "ref": "slice.detect_duplicate_models"
     },
     {
@@ -130,6 +164,21 @@
       "severity": "high",
       "type": "orphan_ref",
       "ref": "system.learning_improvement_platform"
+    },
+    {
+      "severity": "high",
+      "type": "orphan_ref",
+      "ref": "workstream.coaching_dashboard"
+    },
+    {
+      "severity": "high",
+      "type": "orphan_ref",
+      "ref": "workstream.evidence_access"
+    },
+    {
+      "severity": "high",
+      "type": "orphan_ref",
+      "ref": "workstream.teacher_workspace"
     }
   ],
   "bmad_progress": [
@@ -142,6 +191,16 @@
       "validity": "current",
       "updated_at": "2026-05-13",
       "source_path": "skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/bmad-packet.yaml"
+    },
+    {
+      "id": "story.evidence_detail_view",
+      "kind": "story",
+      "name": "Evidence Detail View",
+      "status": "planned",
+      "confidence": "medium",
+      "validity": null,
+      "updated_at": "2026-05-13",
+      "source_path": "skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/story-guard.yaml"
     },
     {
       "id": "story.evidence_detail_view",
@@ -191,7 +250,11 @@
       "bmad_artifacts": [],
       "stories": [],
       "validation_results": [],
-      "salmon_signals": []
+      "salmon_signals": [],
+      "impacted_workstreams": [],
+      "conflicting_workstreams": [],
+      "shared_files": [],
+      "shared_contracts": []
     },
     {
       "slice": "slice.evidence_visible_to_teacher",
@@ -225,6 +288,22 @@
       ],
       "salmon_signals": [
         "salmon.teacher_access_policy"
+      ],
+      "impacted_workstreams": [
+        "workstream.evidence_access",
+        "workstream.teacher_workspace"
+      ],
+      "conflicting_workstreams": [
+        "workstream.coaching_dashboard"
+      ],
+      "shared_files": [
+        "file.apps_teacher_src_evidence_evidenceinbox_tsx",
+        "file.packages_evidence_contracts_src_evidenceartifact_ts"
+      ],
+      "shared_contracts": [
+        "contract.evidenceartifact",
+        "contract.evidencesource",
+        "contract.teacheraccesspolicy"
       ]
     }
   ]

@@ -12,6 +12,18 @@
     "should_trigger": true
   },
   {
+    "query": "Run a LENS context check before creating a PRD.",
+    "should_trigger": true
+  },
+  {
+    "query": "Prepare the focused LENS BMAD packet for this active slice.",
+    "should_trigger": true
+  },
+  {
+    "query": "Initialize LENS project context and traceability rules.",
+    "should_trigger": true
+  },
+  {
     "query": "What is the weather tomorrow?",
     "should_trigger": false
   }

@@ -10,6 +10,10 @@ traceability:
   stories: []
   validation_results: []
   salmon_signals: []
+  impacted_workstreams: []
+  conflicting_workstreams: []
+  shared_files: []
+  shared_contracts: []
 - slice: slice.evidence_visible_to_teacher
   systems:
   - system.learning_improvement_platform
@@ -33,3 +37,15 @@ traceability:
   - validation.evidence_visible_to_teacher.slice
   salmon_signals:
   - salmon.teacher_access_policy
+  impacted_workstreams:
+  - workstream.evidence_access
+  - workstream.teacher_workspace
+  conflicting_workstreams:
+  - workstream.coaching_dashboard
+  shared_files:
+  - file.apps_teacher_src_evidence_evidenceinbox_tsx
+  - file.packages_evidence_contracts_src_evidenceartifact_ts
+  shared_contracts:
+  - contract.evidenceartifact
+  - contract.evidencesource
+  - contract.teacheraccesspolicy

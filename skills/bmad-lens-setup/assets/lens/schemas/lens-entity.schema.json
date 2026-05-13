@@ -48,6 +48,10 @@
         "unknown",
         "risk",
         "evidence",
+        "impact_map",
+        "promotion_gate",
+        "story",
+        "implementation_evidence",
         "salmon_signal",
         "auspex_status",
         "bmad_packet",
@@ -68,7 +72,17 @@
         "approved",
         "validated",
         "superseded",
-        "archived"
+        "archived",
+        "draft",
+        "active",
+        "selected",
+        "planned",
+        "implemented",
+        "blocked",
+        "pass",
+        "fail",
+        "partial",
+        "needs_review"
       ]
     },
     "confidence": {
@@ -110,6 +124,16 @@
         "stale",
         "needs_review"
       ]
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "partial",
+        "blocked",
+        "needs_review"
+      ]
     }
   },
   "additionalProperties": true,
@@ -140,9 +164,36 @@
     "unknown",
     "risk",
     "evidence",
+    "impact_map",
+    "promotion_gate",
+    "story",
+    "implementation_evidence",
     "salmon_signal",
     "auspex_status",
     "bmad_packet",
     "validation_result"
+  ],
+  "x_lens_base_entity_states": [
+    "raw",
+    "extracted",
+    "hypothesized",
+    "challenged",
+    "reviewed",
+    "approved",
+    "validated",
+    "superseded",
+    "archived"
+  ],
+  "x_lens_working_states": [
+    "draft",
+    "active",
+    "selected",
+    "planned",
+    "implemented",
+    "blocked",
+    "pass",
+    "fail",
+    "partial",
+    "needs_review"
   ]
 }

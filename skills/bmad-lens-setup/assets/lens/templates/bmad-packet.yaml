@@ -1,0 +1,26 @@
+bmad_packet:
+  id: bmad_packet.example
+  kind: bmad_packet
+  name: Example BMAD Packet
+  status: draft
+  validity: current
+  confidence: medium
+  created_at: "YYYY-MM-DD"
+  updated_at: "YYYY-MM-DD"
+  source_refs: []
+  relationships: []
+  open_questions: []
+  active_slice: slice.example
+  optional_top_down_context:
+    system: null
+    role: null
+    outcome: null
+    journey: null
+    why_first: ""
+  included_scope: []
+  explicit_exclusions: []
+  required_capabilities: []
+  required_decisions: []
+  risks: []
+  acceptance_evidence: []
+  recommended_bmad_next_step: bmad-create-prd

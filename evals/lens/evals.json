@@ -38,7 +38,28 @@
       "expectations": [
         "Includes active slice, slice goal, included scope, explicit out of scope, required capabilities, required decisions, risks, and acceptance evidence.",
         "Excludes AI recommendations, coaching dashboards, district analytics, and family views.",
-        "Does not dump the whole system into BMAD."
+        "Does not dump the whole system into BMAD.",
+        "Emits or references both bmad-packet.md and bmad-packet.yaml."
+      ]
+    },
+    {
+      "id": "context_gate_blocks_prd",
+      "prompt": "Run headless. Discovery has weak journey readiness and unresolved evidence definitions. Decide whether BMAD PRD work may start.",
+      "expected_output": "Context-check blocks premature PRD creation and writes the gate artifacts.",
+      "expectations": [
+        "Uses bmad-lens-context-check before bmad-lens-prepare-bmad.",
+        "States that PRD is not ready.",
+        "Writes or references context-sufficiency and context-score artifacts."
+      ]
+    },
+    {
+      "id": "workstream_impact_projection",
+      "prompt": "Run headless. A slice impact map lists impacted workstreams, a conflicting workstream, shared files, shared contracts, and an impact_found gate. Produce the graph projection expectations.",
+      "expected_output": "Projects workstream impact into graph relationships, traceability, and warnings.",
+      "expectations": [
+        "Creates impacted_by, possibly_conflicts_with, touches_file, and touches_contract relationships.",
+        "Adds impacted_workstreams, shared_files, and shared_contracts to traceability.",
+        "Emits a workstream_impact_gate warning when impact is found."
       ]
     },
     {
@@ -63,11 +84,12 @@
     },
     {
       "id": "doctor_invalid_topology",
-      "prompt": "Run headless. The LENS graph has duplicate IDs and an orphan relationship. Produce Doctor findings.",
+      "prompt": "Run headless. The LENS graph has duplicate IDs, an orphan relationship, missing source refs, stale records, and an unsynced BMAD packet. Produce Doctor findings.",
       "expected_output": "Detects invalid topology and writes warnings and doctor report paths.",
       "expectations": [
         "Detects duplicate IDs.",
         "Detects orphaned or missing referenced relationships.",
+        "Detects missing source refs, stale or needs-review records, and BMAD sync gaps.",
         "Mentions _bmad-output/lens/graph/warnings.yaml and _bmad-output/lens/graph/doctor-report.md."
       ]
     },
@@ -79,6 +101,16 @@
         "Reads from _bmad-output/lens/graph/derived-map.json.",
         "Writes status.yaml, status.json, and stakeholder-summary.md under _bmad-output/lens/auspex.",
         "States that Auspex is read-only and not source truth."
+      ]
+    },
+    {
+      "id": "project_context_init",
+      "prompt": "Run headless. Initialize LENS in a project that does not yet have _bmad-output/project-context.md.",
+      "expected_output": "Writes canonical LENS project context guidance.",
+      "expectations": [
+        "Creates _bmad-output/project-context.md.",
+        "Includes Traceability Rule, Scope Rule, Architecture Rule, Upstream Change Rule, and Source Truth Rule.",
+        "Does not overwrite an existing project context file."
       ]
     }
   ]

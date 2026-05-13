@@ -1,4 +1,17 @@
 warnings:
+- severity: medium
+  type: workstream_impact_gate
+  id: impact.evidence_visible_to_teacher
+  active_slice: slice.evidence_visible_to_teacher
+  result: impact_found
+  rationale: Evidence visibility touches access policy and teacher workspace.
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/impact-map.yaml
+- severity: high
+  type: duplicate_id
+  id: story.evidence_detail_view
+  paths:
+  - skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/story-guard.yaml
+  - skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/story.yaml
 - severity: high
   type: orphan_ref
   ref: artifact.model_image_set
@@ -25,6 +38,21 @@ warnings:
   ref: capability.teacher_workspace
 - severity: high
   type: orphan_ref
+  ref: contract.evidenceartifact
+- severity: high
+  type: orphan_ref
+  ref: contract.evidencesource
+- severity: high
+  type: orphan_ref
+  ref: contract.teacheraccesspolicy
+- severity: high
+  type: orphan_ref
+  ref: file.apps_teacher_src_evidence_evidenceinbox_tsx
+- severity: high
+  type: orphan_ref
+  ref: file.packages_evidence_contracts_src_evidenceartifact_ts
+- severity: high
+  type: orphan_ref
   ref: slice.detect_duplicate_models
 - severity: high
   type: orphan_ref
@@ -32,6 +60,15 @@ warnings:
 - severity: high
   type: orphan_ref
   ref: system.learning_improvement_platform
+- severity: high
+  type: orphan_ref
+  ref: workstream.coaching_dashboard
+- severity: high
+  type: orphan_ref
+  ref: workstream.evidence_access
+- severity: high
+  type: orphan_ref
+  ref: workstream.teacher_workspace
 - severity: medium
   type: unresolved_promoted_ref
   ref: capability.model_image_processing
@@ -44,6 +81,26 @@ warnings:
   type: unresolved_promoted_ref
   ref: capability.model_image_processing
   source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/download-model-images/promotion-gate.yaml
+- severity: medium
+  type: unresolved_promoted_ref
+  ref: capability.evidence_artifact_model
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/bmad-packet.yaml
+- severity: medium
+  type: unresolved_promoted_ref
+  ref: capability.evidence_source_metadata
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/bmad-packet.yaml
+- severity: medium
+  type: unresolved_promoted_ref
+  ref: capability.teacher_workspace
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/bmad-packet.yaml
+- severity: medium
+  type: unresolved_promoted_ref
+  ref: capability.role_based_visibility
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/bmad-packet.yaml
+- severity: medium
+  type: unresolved_promoted_ref
+  ref: system.learning_improvement_platform
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/discovery-epoch.yaml
 - severity: medium
   type: unresolved_promoted_ref
   ref: system.learning_improvement_platform
@@ -72,3 +129,8 @@ warnings:
   type: unresolved_promoted_ref
   ref: capability.role_based_visibility
   source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/slice.yaml
+- severity: medium
+  type: unresolved_decision
+  id: decision.teacher_access_policy
+  status: draft
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/journey.yaml

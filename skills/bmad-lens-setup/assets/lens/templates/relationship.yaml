@@ -2,11 +2,16 @@ relationship:
   id: rel.example
   kind: relationship
   name: Example Relationship
+  status: hypothesized
+  confidence: medium
+  created_at: "YYYY-MM-DD"
+  updated_at: "YYYY-MM-DD"
+  source_refs: []
+  relationships: []
+  open_questions: []
   from: source.id
   type: realized_by
   to: target.id
-  status: hypothesized
-  confidence: medium
   discovered_from: []
   review:
     status: human_review_needed
