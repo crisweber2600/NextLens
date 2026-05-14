@@ -68,6 +68,81 @@ def test_parse_context_yaml_reports_missing_nested_field() -> None:
     assert "roles[0].id" in str(exc_info.value)
 
 
+def test_evaluate_context_sufficiency_returns_ready_when_all_gates_pass() -> None:
+    report = CONTEXT_LOADER.evaluate_context_sufficiency(_sufficient_context())
+
+    assert report.status == "ready"
+    assert report.recommendation == "continue"
+    assert report.missing_required == ()
+    assert report.warnings == ()
+    assert [gate.name for gate in report.gate_results] == list(CONTEXT_LOADER.SUFFICIENCY_GATE_ORDER)
+    assert all(gate.passed for gate in report.gate_results)
+
+
+def test_evaluate_context_sufficiency_returns_ready_with_warnings() -> None:
+    payload = _sufficient_context()
+    payload["risks"] = ["risk-1"]
+    payload["openQuestions"] = ["question-1", "question-2"]
+    payload.pop("bmadConsumerContext")
+
+    report = CONTEXT_LOADER.evaluate_context_sufficiency(payload)
+
+    assert report.status == "ready_with_warnings"
+    assert report.recommendation == "ask_for_confirmation"
+    assert report.missing_required == ()
+    assert "risks_captured has fewer than 3 risks (1)." in report.warnings
+    assert "risks_captured has fewer than 3 open questions (2)." in report.warnings
+    assert "bmad_hints is missing bmadConsumerContext." in report.warnings
+
+
+def test_evaluate_context_sufficiency_returns_blocked_and_lists_failed_gates() -> None:
+    payload = _sufficient_context()
+    payload["system"]["thesis"] = ""
+    payload["roles"] = []
+    payload["outcomes"] = []
+    payload["journeys"] = []
+    payload["candidateFeatures"] = [{"id": "feature-context-gate"}]
+
+    report = CONTEXT_LOADER.evaluate_context_sufficiency(payload)
+
+    assert report.status == "blocked"
+    assert report.recommendation == "return_to_discovery"
+    assert report.missing_required == (
+        "system_thesis",
+        "role_coverage",
+        "outcome_coverage",
+        "journey_coverage",
+        "candidate_traceability",
+    )
+
+
+def test_evaluate_context_sufficiency_accepts_journey_hypotheses() -> None:
+    payload = _sufficient_context()
+    payload["journeys"] = []
+    payload["journeyHypotheses"] = [{"id": "journey-hypothesis-1"}]
+
+    report = CONTEXT_LOADER.evaluate_context_sufficiency(payload)
+
+    journey_gate = next(gate for gate in report.gate_results if gate.name == "journey_coverage")
+    assert journey_gate.passed is True
+    assert journey_gate.detail == "1 journeys"
+
+
+def test_evaluate_context_sufficiency_propagates_parser_warnings() -> None:
+    loaded = CONTEXT_LOADER.LoadedContext(
+        payload=_sufficient_context(),
+        warnings=(
+            "Schema version mismatch: expected 'lens.topdown-context.v1' but received "
+            "'lens.topdown-context.v0'. Continuing with a warning.",
+        ),
+        version_mismatch=True,
+    )
+    report = CONTEXT_LOADER.evaluate_context_sufficiency(loaded)
+
+    assert report.status == "ready_with_warnings"
+    assert any("Schema version mismatch" in warning for warning in report.warnings)
+
+
 def _context_yaml(
     *,
     envelope: bool = False,
@@ -123,3 +198,47 @@ def _context_yaml(
         return "\n".join(body_lines) + "\n"
 
     return "\n".join(["top_down_context:", *[f"  {line}" for line in body_lines]]) + "\n"
+
+
+def _sufficient_context() -> dict[str, object]:
+    return {
+        "schemaVersion": "lens.topdown-context.v1",
+        "system": {
+            "id": "nextlens",
+            "name": "NextLens",
+            "thesis": "Improve planning fidelity",
+            "status": "active",
+            "confidence": "high",
+        },
+        "discoveryEpoch": {
+            "id": "epoch-2026-05-14",
+            "status": "synthesized",
+            "sourceRefs": ["docs/discovery.md"],
+        },
+        "roles": [
+            {"id": "role-operator", "name": "Operator"},
+        ],
+        "outcomes": [
+            {"id": "outcome-reduce-ambiguity", "name": "Reduce ambiguity"},
+        ],
+        "journeys": [
+            {"id": "journey-intake", "name": "Intake"},
+        ],
+        "candidateFeatures": [
+            {
+                "id": "feature-context-gate",
+                "title": "Context sufficiency gate",
+                "journeyIds": ["journey-intake"],
+            },
+        ],
+        "stakeholders": [],
+        "operatingLoops": [],
+        "openQuestions": ["question-1", "question-2", "question-3"],
+        "risks": ["risk-1", "risk-2", "risk-3"],
+        "decisions": [],
+        "relationshipRefs": [],
+        "bmadConsumerContext": {
+            "planningMode": "feature-packet",
+            "consumer": "bmad",
+        },
+    }
