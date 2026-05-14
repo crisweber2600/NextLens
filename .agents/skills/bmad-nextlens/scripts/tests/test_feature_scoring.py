@@ -93,6 +93,116 @@ def test_rank_candidate_features_is_deterministic_and_applies_tie_breakers() -> 
     ]
 
 
+def test_tie_break_prefers_highest_outcome_alignment(monkeypatch: pytest.MonkeyPatch) -> None:
+    ranked = _rank_with_mocked_scores(
+        monkeypatch,
+        _scored_candidate("feature-alpha", outcome_alignment=82.0),
+        _scored_candidate("feature-beta", outcome_alignment=91.0),
+    )
+
+    assert [candidate.candidate_id for candidate in ranked] == ["feature-beta", "feature-alpha"]
+
+
+def test_tie_break_prefers_highest_journey_criticality_after_outcome_alignment(monkeypatch: pytest.MonkeyPatch) -> None:
+    ranked = _rank_with_mocked_scores(
+        monkeypatch,
+        _scored_candidate("feature-alpha", outcome_alignment=90.0, journey_criticality=70.0),
+        _scored_candidate("feature-beta", outcome_alignment=90.0, journey_criticality=88.0),
+    )
+
+    assert [candidate.candidate_id for candidate in ranked] == ["feature-beta", "feature-alpha"]
+
+
+def test_tie_break_prefers_fewer_unresolved_blockers(monkeypatch: pytest.MonkeyPatch) -> None:
+    ranked = _rank_with_mocked_scores(
+        monkeypatch,
+        _scored_candidate(
+            "feature-alpha",
+            outcome_alignment=90.0,
+            journey_criticality=88.0,
+            unresolved_blockers=2,
+        ),
+        _scored_candidate(
+            "feature-beta",
+            outcome_alignment=90.0,
+            journey_criticality=88.0,
+            unresolved_blockers=1,
+        ),
+    )
+
+    assert [candidate.candidate_id for candidate in ranked] == ["feature-beta", "feature-alpha"]
+
+
+def test_tie_break_prefers_highest_evidence_clarity(monkeypatch: pytest.MonkeyPatch) -> None:
+    ranked = _rank_with_mocked_scores(
+        monkeypatch,
+        _scored_candidate(
+            "feature-alpha",
+            outcome_alignment=90.0,
+            journey_criticality=88.0,
+            unresolved_blockers=1,
+            evidence_clarity=74.0,
+        ),
+        _scored_candidate(
+            "feature-beta",
+            outcome_alignment=90.0,
+            journey_criticality=88.0,
+            unresolved_blockers=1,
+            evidence_clarity=92.0,
+        ),
+    )
+
+    assert [candidate.candidate_id for candidate in ranked] == ["feature-beta", "feature-alpha"]
+
+
+def test_tie_break_prefers_earliest_candidate_timestamp(monkeypatch: pytest.MonkeyPatch) -> None:
+    ranked = _rank_with_mocked_scores(
+        monkeypatch,
+        _scored_candidate(
+            "feature-alpha",
+            outcome_alignment=90.0,
+            journey_criticality=88.0,
+            unresolved_blockers=1,
+            evidence_clarity=92.0,
+            stable_candidate_timestamp="2026-05-02T12:00:00Z",
+        ),
+        _scored_candidate(
+            "feature-beta",
+            outcome_alignment=90.0,
+            journey_criticality=88.0,
+            unresolved_blockers=1,
+            evidence_clarity=92.0,
+            stable_candidate_timestamp="2026-05-01T12:00:00Z",
+        ),
+    )
+
+    assert [candidate.candidate_id for candidate in ranked] == ["feature-beta", "feature-alpha"]
+
+
+def test_tie_break_falls_back_to_lexical_order(monkeypatch: pytest.MonkeyPatch) -> None:
+    ranked = _rank_with_mocked_scores(
+        monkeypatch,
+        _scored_candidate(
+            "feature-zeta",
+            outcome_alignment=90.0,
+            journey_criticality=88.0,
+            unresolved_blockers=1,
+            evidence_clarity=92.0,
+            stable_candidate_timestamp="2026-05-01T12:00:00Z",
+        ),
+        _scored_candidate(
+            "feature-alpha",
+            outcome_alignment=90.0,
+            journey_criticality=88.0,
+            unresolved_blockers=1,
+            evidence_clarity=92.0,
+            stable_candidate_timestamp="2026-05-01T12:00:00Z",
+        ),
+    )
+
+    assert [candidate.candidate_id for candidate in ranked] == ["feature-alpha", "feature-zeta"]
+
+
 def _base_context() -> dict[str, object]:
     return {
         "outcomes": [
@@ -161,3 +271,53 @@ def _candidate(
         ],
         "stableCandidateTimestamp": stable_timestamp,
     }
+
+
+def _rank_with_mocked_scores(
+    monkeypatch: pytest.MonkeyPatch,
+    *scored_candidates: FEATURE_SCORING.ScoredCandidate,
+) -> tuple[FEATURE_SCORING.ScoredCandidate, ...]:
+    score_map = {candidate.candidate_id: candidate for candidate in scored_candidates}
+
+    monkeypatch.setattr(
+        FEATURE_SCORING,
+        "score_candidate_feature",
+        lambda candidate, context: score_map[candidate["id"]],
+    )
+
+    return FEATURE_SCORING.rank_candidate_features(
+        {"candidateFeatures": [{"id": candidate.candidate_id} for candidate in reversed(scored_candidates)]}
+    )
+
+
+def _scored_candidate(
+    candidate_id: str,
+    *,
+    composite_score: float = 80.0,
+    unresolved_blockers: int = 0,
+    stable_candidate_timestamp: str | None = None,
+    outcome_alignment: float = 80.0,
+    journey_criticality: float = 80.0,
+    evidence_clarity: float = 80.0,
+) -> FEATURE_SCORING.ScoredCandidate:
+    factor_overrides = {
+        "outcome_alignment": outcome_alignment,
+        "journey_criticality": journey_criticality,
+        "evidence_clarity": evidence_clarity,
+    }
+    factor_scores = tuple(
+        FEATURE_SCORING.FactorScore(
+            name=name,
+            score=factor_overrides.get(name, 80.0),
+            detail=name,
+        )
+        for name in FEATURE_SCORING.FACTOR_ORDER
+    )
+    return FEATURE_SCORING.ScoredCandidate(
+        candidate_id=candidate_id,
+        candidate_name=candidate_id,
+        factor_scores=factor_scores,
+        composite_score=composite_score,
+        unresolved_blockers=unresolved_blockers,
+        stable_candidate_timestamp=stable_candidate_timestamp,
+    )
