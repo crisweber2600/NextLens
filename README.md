@@ -33,6 +33,8 @@ Use `bmad-lens-help` when unsure.
 
 Use `bmad-lens-discover` for a large ambiguous system idea. The top-down path is capture, extraction, context sufficiency, challenged assumptions, outcomes, journeys, slice selection, impact analysis, focused BMAD packet, BMAD execution, validation, and Salmon correction when implementation reveals reality.
 
+Top-down discovery should finish with a concrete handoff: current gate, review order, candidate slice overview, selected first slice, adjacent or deferred slices, and action queue. Use `skills/bmad-lens-setup/assets/lens/templates/discovery-next-steps.md` for that output so users can see what to review and what happens next.
+
 Use `bmad-lens-slice-new` for one useful bottom-up thing. A bottom-up slice can remain complete without a system, domain, service, capability, program, initiative, or roadmap.
 
 The canonical slice artifact is `slice.yaml`: scope includes/excludes, acceptance evidence, and risks live inline in that file. `slice.md` can summarize the same record for humans, but separate acceptance-evidence or risks YAML files are not source truth.
@@ -86,6 +88,13 @@ Canonical fixture paths:
 
 - `skills/bmad-lens-setup/assets/lens/fixtures/top-down/evidence-visible-to-teacher/`
 - `skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/download-model-images/`
+- `skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/`
+
+Additional maintainer docs:
+
+- `docs/lens-flows.md`
+- `docs/top-down-discovery-handoff.md`
+- `docs/glossary.md`
 
 ## Relationship Diagram
 

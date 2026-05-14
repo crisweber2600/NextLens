@@ -5,6 +5,13 @@ evals:
       - route_to: bmad-lens-discover
       - not_route_directly_to: bmad-create-prd
       - requires_context_check: true
+  - id: lens.eval.top_down_discovery_handoff_actions
+    input: A top-down discovery pass has created capture, extraction, journey, slice, impact, context, graph, and Auspex outputs.
+    expected:
+      - produces: discovery-next-steps.md
+      - includes: [current_gate, review_order, candidate_slice_overview, selected_first_slice, action_queue]
+      - explains_slice_as: thin_work_option_when_helpful
+      - blocks_bmad_until: context_gate_ready_or_explicitly_accepted
   - id: lens.eval.bottom_up_remains_slice
     input: I want to download images from 3D printing model websites.
     expected:

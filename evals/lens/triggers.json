@@ -4,6 +4,10 @@
     "should_trigger": true
   },
   {
+    "query": "Show me what to review next after top-down LENS discovery and which slices to dive into.",
+    "should_trigger": true
+  },
+  {
     "query": "Create a bottom-up LENS slice for downloading model images.",
     "should_trigger": true
   },

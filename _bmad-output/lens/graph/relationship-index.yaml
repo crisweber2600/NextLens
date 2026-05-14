@@ -24,6 +24,31 @@ relationships:
   to: artifact.model_image_set
   source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/download-model-images/slice.yaml
   evidence: null
+- from: slice.top_down_discovery_next_step_map
+  type: produces_artifact
+  to: artifact.discovery_next_steps_map
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+  evidence: null
+- from: slice.top_down_discovery_next_step_map
+  type: produces_artifact
+  to: artifact.candidate_slice_overview
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+  evidence: null
+- from: slice.top_down_discovery_next_step_map
+  type: produces_artifact
+  to: artifact.lens_flow_docs
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+  evidence: null
+- from: slice.top_down_discovery_next_step_map
+  type: consumes_artifact
+  to: artifact.discovery_epoch
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+  evidence: null
+- from: slice.top_down_discovery_next_step_map
+  type: consumes_artifact
+  to: artifact.context_score
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+  evidence: null
 - from: bmad_packet.evidence_visible_to_teacher
   type: planned_by
   to: slice.evidence_visible_to_teacher

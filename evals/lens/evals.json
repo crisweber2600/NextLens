@@ -12,6 +12,17 @@
       ]
     },
     {
+      "id": "top_down_discovery_handoff_actions",
+      "prompt": "Run headless. A top-down discovery pass has produced capture, extraction, journey, slice, impact, context gate, graph, and Auspex outputs. Produce the final handoff to the user.",
+      "expected_output": "A concrete discovery-next-steps handoff with review order, candidate slices, current gate, and action queue.",
+      "expectations": [
+        "References or emits discovery-next-steps.md.",
+        "Includes current gate, review order, candidate slice overview, selected first slice, adjacent or deferred slices, and action queue.",
+        "Explains slices as thin work options when the user may not know the term.",
+        "Does not recommend BMAD PRD, UX, architecture, epics, or stories until the context gate is ready or explicitly accepted."
+      ]
+    },
+    {
       "id": "bottom_up_remains_slice",
       "prompt": "Run headless. A user says: I want to download images from 3D printing model websites. Produce the LENS artifact plan.",
       "expected_output": "Creates a slice and does not create platform/system/domain/capability by default.",

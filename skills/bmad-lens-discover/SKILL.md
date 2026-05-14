@@ -35,7 +35,10 @@ Creates and advances discovery epochs through capture, extraction, sufficiency c
 2. Ask focused questions and capture responses as raw material.
 3. Extract candidate concepts with status and confidence.
 4. Challenge assumptions and record open questions.
-5. Recommend next LENS and BMAD skills.
+5. Build a candidate slice overview from the strongest journey paths. Keep `slice` as the source-truth term, but describe candidates as thin work options when that is clearer for humans.
+6. Name the selected first slice, adjacent or deferred slices, and the reason each is first, adjacent, or deferred.
+7. Produce a discovery next-step map using `../bmad-lens-setup/assets/lens/templates/discovery-next-steps.md`: current gate, review order, candidate slice overview, and action queue.
+8. Recommend next LENS and BMAD skills. Do not recommend BMAD PRD, UX, architecture, epics, or stories until the action queue shows that the context gate is ready or explicitly accepted by the user.
 
 ## Required Output Discipline
 
@@ -47,4 +50,4 @@ Creates and advances discovery epochs through capture, extraction, sufficiency c
 
 ## Produces
 
-discovery epoch and discovery notes.
+discovery epoch, discovery notes, candidate slice overview, and discovery next-step map.

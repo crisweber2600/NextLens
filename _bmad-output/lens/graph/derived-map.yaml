@@ -1,4 +1,4 @@
-generated_at: '2026-05-13T22:38:31.929158+00:00'
+generated_at: '2026-05-14T00:23:09.203089+00:00'
 source_truth: false
 source_roots:
 - _bmad-output/lens
@@ -28,6 +28,54 @@ nodes:
   validity: null
   updated_at: '2026-05-13'
   source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/download-model-images/slice.yaml
+- id: slice.top_down_discovery_next_step_map
+  kind: slice
+  name: Top Down Discovery Next Step Map
+  status: active
+  confidence: high
+  validity: null
+  updated_at: '2026-05-14'
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+- id: artifact.discovery_next_steps_map
+  kind: artifact
+  name: Discovery Next Steps Map
+  status: reviewed
+  confidence: high
+  validity: null
+  updated_at: '2026-05-14'
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+- id: artifact.candidate_slice_overview
+  kind: artifact
+  name: Candidate Slice Overview
+  status: reviewed
+  confidence: high
+  validity: null
+  updated_at: '2026-05-14'
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+- id: artifact.lens_flow_docs
+  kind: artifact
+  name: LENS Flow Documentation
+  status: reviewed
+  confidence: high
+  validity: null
+  updated_at: '2026-05-14'
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+- id: artifact.discovery_epoch
+  kind: artifact
+  name: Discovery Epoch
+  status: reviewed
+  confidence: medium
+  validity: null
+  updated_at: '2026-05-14'
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+- id: artifact.context_score
+  kind: artifact
+  name: Context Score
+  status: reviewed
+  confidence: medium
+  validity: null
+  updated_at: '2026-05-14'
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
 - id: bmad_packet.evidence_visible_to_teacher
   kind: bmad_packet
   name: Evidence Visible To Teacher Packet
@@ -165,6 +213,31 @@ relationships:
   type: produces_artifact
   to: artifact.model_image_set
   source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/download-model-images/slice.yaml
+  evidence: null
+- from: slice.top_down_discovery_next_step_map
+  type: produces_artifact
+  to: artifact.discovery_next_steps_map
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+  evidence: null
+- from: slice.top_down_discovery_next_step_map
+  type: produces_artifact
+  to: artifact.candidate_slice_overview
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+  evidence: null
+- from: slice.top_down_discovery_next_step_map
+  type: produces_artifact
+  to: artifact.lens_flow_docs
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+  evidence: null
+- from: slice.top_down_discovery_next_step_map
+  type: consumes_artifact
+  to: artifact.discovery_epoch
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+  evidence: null
+- from: slice.top_down_discovery_next_step_map
+  type: consumes_artifact
+  to: artifact.context_score
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
   evidence: null
 - from: bmad_packet.evidence_visible_to_teacher
   type: planned_by

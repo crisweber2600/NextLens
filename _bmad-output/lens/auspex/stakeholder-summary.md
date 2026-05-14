@@ -2,11 +2,11 @@
 
 Auspex is read-only and generated from the Derived Map and source ledgers.
 
-- Nodes indexed: 17
-- Relationships indexed: 40
+- Nodes indexed: 23
+- Relationships indexed: 45
 - Active outcomes: 1
 - Active journeys: 1
-- Active slices: 2
+- Active slices: 3
 - Open decisions: 1
 - Risks: 1
 - Blockers: 20

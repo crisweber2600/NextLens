@@ -74,6 +74,8 @@ large ambiguous vision -> discovery epoch -> raw capture -> extracted hypotheses
 
 Top-down LENS must not jump directly from brainstorm to PRD. It requires captured context, extracted hypotheses, context sufficiency, challenged assumptions, focused outcome, mapped journey, selected vertical slice, capability and impact map, and a focused BMAD packet before BMAD PRD, UX, architecture, or epics.
 
+Every top-down discovery pass must also produce an explicit handoff before BMAD planning: current gate, review order, candidate slice overview, selected first slice, adjacent or deferred slices, and action queue. The canonical template is `templates/discovery-next-steps.md`. The handoff should call source-truth units slices, while human-facing explanations may describe them as thin work options when the user is still learning the term.
+
 ### Bottom-Up LENS
 
 Use when the user only knows one useful thing.

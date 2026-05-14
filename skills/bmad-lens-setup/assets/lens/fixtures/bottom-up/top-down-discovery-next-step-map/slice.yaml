@@ -1,0 +1,99 @@
+slice:
+  id: slice.top_down_discovery_next_step_map
+  kind: slice
+  name: Top Down Discovery Next Step Map
+  status: active
+  confidence: high
+  created_at: "2026-05-14"
+  updated_at: "2026-05-14"
+  source_refs:
+    - fixture.bottom_up.discovery_handoff
+  relationships: []
+  open_questions:
+    - Should candidate slice overview become a required artifact in discovery evals or remain a documented handoff contract?
+  goal: Make top-down discovery handoffs show review order, candidate slices, and concrete next actions.
+  scope:
+    includes:
+      - discovery handoff template with current gate, review order, candidate slice overview, and action queue
+      - documentation for top-down and bottom-up flow differences
+      - glossary entry that explains slice as the LENS source-truth term and thin work option as human-facing wording
+      - skill guidance requiring top-down discovery to produce explicit next actions before BMAD handoff
+    excludes:
+      - changing the canonical slice artifact contract
+      - promoting discovery handoff into a capability
+      - changing BMAD ownership of PRD, UX, architecture, epics, or stories
+      - generating application code
+  produces:
+    - artifact.discovery_next_steps_map
+    - artifact.candidate_slice_overview
+    - artifact.lens_flow_docs
+  consumes:
+    - artifact.discovery_epoch
+    - artifact.context_score
+  acceptance_evidence:
+    - top-down discovery skill names discovery-next-steps.md as an expected output
+    - docs explain top-down flow, bottom-up flow, review order, and glossary terms
+    - seed remains a bottom-up slice without system, domain, service, capability, program, initiative, or roadmap fields
+    - validator requires the discovery-next-steps.md template
+  risks:
+    - risk.discovery_handoff_becomes_too_heavy
+    - risk.slice_language_confuses_new_users
+  decisions_needed:
+    - decision.discovery_handoff_eval_required
+  validation_status: not_validated
+  linked_entities:
+    - id: artifact.discovery_next_steps_map
+      kind: artifact
+      name: Discovery Next Steps Map
+      status: reviewed
+      confidence: high
+      created_at: "2026-05-14"
+      updated_at: "2026-05-14"
+      source_refs:
+        - fixture.bottom_up.discovery_handoff
+      relationships: []
+      open_questions: []
+    - id: artifact.candidate_slice_overview
+      kind: artifact
+      name: Candidate Slice Overview
+      status: reviewed
+      confidence: high
+      created_at: "2026-05-14"
+      updated_at: "2026-05-14"
+      source_refs:
+        - fixture.bottom_up.discovery_handoff
+      relationships: []
+      open_questions: []
+    - id: artifact.lens_flow_docs
+      kind: artifact
+      name: LENS Flow Documentation
+      status: reviewed
+      confidence: high
+      created_at: "2026-05-14"
+      updated_at: "2026-05-14"
+      source_refs:
+        - fixture.bottom_up.discovery_handoff
+      relationships: []
+      open_questions: []
+    - id: artifact.discovery_epoch
+      kind: artifact
+      name: Discovery Epoch
+      status: reviewed
+      confidence: medium
+      created_at: "2026-05-14"
+      updated_at: "2026-05-14"
+      source_refs:
+        - fixture.bottom_up.discovery_handoff
+      relationships: []
+      open_questions: []
+    - id: artifact.context_score
+      kind: artifact
+      name: Context Score
+      status: reviewed
+      confidence: medium
+      created_at: "2026-05-14"
+      updated_at: "2026-05-14"
+      source_refs:
+        - fixture.bottom_up.discovery_handoff
+      relationships: []
+      open_questions: []

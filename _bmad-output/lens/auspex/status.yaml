@@ -1,9 +1,9 @@
 auspex_status:
-  generated_at: '2026-05-13T22:38:36.062795+00:00'
+  generated_at: '2026-05-14T00:23:09.342659+00:00'
   source_truth: false
   derived_map: _bmad-output/lens/graph/derived-map.json
-  node_count: 17
-  relationship_count: 40
+  node_count: 23
+  relationship_count: 45
   warning_count: 37
   active_outcomes:
   - id: outcome.teacher_turns_evidence_into_action
@@ -32,6 +32,14 @@ auspex_status:
     validity: null
     updated_at: '2026-05-13'
     source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/download-model-images/slice.yaml
+  - id: slice.top_down_discovery_next_step_map
+    kind: slice
+    name: Top Down Discovery Next Step Map
+    status: active
+    confidence: high
+    validity: null
+    updated_at: '2026-05-14'
+    source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
   - id: slice.evidence_visible_to_teacher
     kind: slice
     name: Evidence Visible To Teacher
@@ -173,6 +181,25 @@ auspex_status:
     capabilities: []
     artifacts:
     - artifact.model_image_set
+    bmad_artifacts: []
+    stories: []
+    validation_results: []
+    salmon_signals: []
+    impacted_workstreams: []
+    conflicting_workstreams: []
+    shared_files: []
+    shared_contracts: []
+  - slice: slice.top_down_discovery_next_step_map
+    systems: []
+    outcomes: []
+    journeys: []
+    capabilities: []
+    artifacts:
+    - artifact.candidate_slice_overview
+    - artifact.context_score
+    - artifact.discovery_epoch
+    - artifact.discovery_next_steps_map
+    - artifact.lens_flow_docs
     bmad_artifacts: []
     stories: []
     validation_results: []

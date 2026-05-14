@@ -1,6 +1,6 @@
-generated_at: '2026-05-13T22:38:31.929158+00:00'
+generated_at: '2026-05-14T00:23:09.203089+00:00'
 stale_after_days: 90
-files_indexed: 17
+files_indexed: 18
 items:
 - id: adjacency.download_model_images.to_generate_model_description
   kind: adjacency
@@ -20,6 +20,42 @@ items:
   updated_at: '2026-05-13'
   signals: []
   source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/download-model-images/slice.yaml
+- id: slice.top_down_discovery_next_step_map
+  kind: slice
+  validity: unknown
+  updated_at: '2026-05-14'
+  signals: []
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+- id: artifact.discovery_next_steps_map
+  kind: artifact
+  validity: unknown
+  updated_at: '2026-05-14'
+  signals: []
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+- id: artifact.candidate_slice_overview
+  kind: artifact
+  validity: unknown
+  updated_at: '2026-05-14'
+  signals: []
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+- id: artifact.lens_flow_docs
+  kind: artifact
+  validity: unknown
+  updated_at: '2026-05-14'
+  signals: []
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+- id: artifact.discovery_epoch
+  kind: artifact
+  validity: unknown
+  updated_at: '2026-05-14'
+  signals: []
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
+- id: artifact.context_score
+  kind: artifact
+  validity: unknown
+  updated_at: '2026-05-14'
+  signals: []
+  source_path: skills/bmad-lens-setup/assets/lens/fixtures/bottom-up/top-down-discovery-next-step-map/slice.yaml
 - id: bmad_packet.evidence_visible_to_teacher
   kind: bmad_packet
   validity: current

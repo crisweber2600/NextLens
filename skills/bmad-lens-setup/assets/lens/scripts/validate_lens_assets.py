@@ -14,10 +14,11 @@ REQUIRED_SKILLS = [
     'bmad-lens-setup','bmad-lens-help','bmad-lens-intake','bmad-lens-slice-new','bmad-lens-slice-frame','bmad-lens-slice-scope','bmad-lens-detect-adjacency','bmad-lens-detect-repetition','bmad-lens-suggest-promotion','bmad-lens-discover','bmad-lens-capture','bmad-lens-synthesize','bmad-lens-context-check','bmad-lens-research-plan','bmad-lens-map-system','bmad-lens-map-outcomes','bmad-lens-map-loops','bmad-lens-map-journeys','bmad-lens-slice-journey','bmad-lens-map-capabilities','bmad-lens-analyze-impact','bmad-lens-promote-landscape','bmad-lens-map-rebuild','bmad-lens-prepare-bmad','bmad-lens-sync-bmad','bmad-lens-guard-story','bmad-lens-validate-slice','bmad-lens-validate-journey','bmad-lens-validate-outcome','bmad-lens-salmon','bmad-lens-doctor','bmad-lens-auspex'
 ]
 REQUIRED_ENTITIES = ['system','system_thesis','discovery_epoch','session','source','extraction','slice','artifact','adjacency','relationship','role','stakeholder','outcome','operating_loop','journey','journey_step','capability','domain','service','workstream','program','decision','assumption','unknown','risk','evidence','impact_map','promotion_gate','story','implementation_evidence','salmon_signal','auspex_status','bmad_packet','validation_result']
-REQUIRED_TEMPLATES = ['slice.yaml','discovery-epoch.yaml','relationship.yaml','promotion-gate.yaml','impact-map.yaml','bmad-packet.yaml','bmad-packet.md','context-sufficiency.md','story-guard.yaml','salmon-signal.yaml','validation-result.yaml','doctor-report.md','auspex-status.yaml','journey.yaml','journey.md','journey-map.mmd','project-context.md']
+REQUIRED_TEMPLATES = ['slice.yaml','discovery-epoch.yaml','discovery-next-steps.md','relationship.yaml','promotion-gate.yaml','impact-map.yaml','bmad-packet.yaml','bmad-packet.md','context-sufficiency.md','story-guard.yaml','salmon-signal.yaml','validation-result.yaml','doctor-report.md','auspex-status.yaml','journey.yaml','journey.md','journey-map.mmd','project-context.md']
 REQUIRED_FIXTURES = {
     'fixtures/top-down/evidence-visible-to-teacher': ['slice.yaml', 'journey.yaml', 'impact-map.yaml'],
     'fixtures/bottom-up/download-model-images': ['slice.yaml', 'adjacency.yaml', 'promotion-gate.yaml'],
+    'fixtures/bottom-up/top-down-discovery-next-step-map': ['slice.yaml'],
 }
 REQUIRED_TESTS = [
     'scripts/tests/test_lens_artifact_ops.py',
@@ -27,6 +28,7 @@ REQUIRED_METADATA = ['id', 'kind', 'name', 'status', 'confidence', 'created_at',
 SEMANTIC_ROOTS = ['templates', 'fixtures']
 REQUIRED_EVAL_IDS = {
     'top_down_routes_to_discovery',
+    'top_down_discovery_handoff_actions',
     'bottom_up_remains_slice',
     'relationship_contract_validation',
     'repeated_pressure_promotion_candidate',

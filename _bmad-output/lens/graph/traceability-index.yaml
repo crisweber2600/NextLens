@@ -14,6 +14,25 @@ traceability:
   conflicting_workstreams: []
   shared_files: []
   shared_contracts: []
+- slice: slice.top_down_discovery_next_step_map
+  systems: []
+  outcomes: []
+  journeys: []
+  capabilities: []
+  artifacts:
+  - artifact.candidate_slice_overview
+  - artifact.context_score
+  - artifact.discovery_epoch
+  - artifact.discovery_next_steps_map
+  - artifact.lens_flow_docs
+  bmad_artifacts: []
+  stories: []
+  validation_results: []
+  salmon_signals: []
+  impacted_workstreams: []
+  conflicting_workstreams: []
+  shared_files: []
+  shared_contracts: []
 - slice: slice.evidence_visible_to_teacher
   systems:
   - system.learning_improvement_platform
