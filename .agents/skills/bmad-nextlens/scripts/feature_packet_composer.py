@@ -20,8 +20,9 @@ SOURCE_CONTEXT_REFS = (
     "brainstorm.md",
 )
 DEFAULT_SCOPE_CONTAINMENT_WARNING = (
-    "BMAD must stay within selectedFeature.includedScope and must not expand into "
-    "adjacent journeys, future Features, full platform architecture, or unrelated outcomes."
+    "This packet represents one selected Feature from top-down discovery. "
+    "Do not expand into adjacent journeys, future Features, platform architecture, "
+    "or unrelated outcomes unless Salmon or correct-course signals scope change."
 )
 DEFAULT_EXPLICIT_OUT_OF_SCOPE = (
     "adjacent journeys",
@@ -58,14 +59,16 @@ def compose_feature_packet(
     candidate_definition = _candidate_definition(context, selected_candidate_id)
     created_at = _utc_timestamp(now_factory)
     packet_id = (packet_id_factory or _uuid4)()
+    selected_feature = _selected_feature_payload(selected_candidate, candidate_definition)
+    trace = _trace_payload(candidate_definition, context)
 
     packet = {
         "schemaVersion": schema_module.FEATURE_PACKET_SCHEMA_VERSION,
         "packetId": packet_id,
         "featureId": selected_candidate_id,
         "sourceMode": schema_module.FEATURE_PACKET_SOURCE_MODE,
-        "selectedFeature": _selected_feature_payload(selected_candidate, candidate_definition),
-        "trace": _trace_payload(candidate_definition, context),
+        "selectedFeature": selected_feature,
+        "trace": trace,
         "selectionRationale": _selection_rationale_payload(
             selected_candidate,
             ranked_candidates,
@@ -76,7 +79,14 @@ def compose_feature_packet(
         "derivedGraphRef": str(derived_graph_ref or docs_root / "derived" / "graph.json"),
         "doctorSummary": _doctor_summary_payload(doctor_summary),
         "salmonRoutingSummary": dict(salmon_routing_summary or {"status": "not_required"}),
-        "bmadConsumerHints": _bmad_consumer_hints(context, candidate_definition),
+        "bmadConsumerHints": _bmad_consumer_hints(
+            context,
+            candidate_definition,
+            selected_feature=selected_feature,
+            trace=trace,
+            schema_version=schema_module.FEATURE_PACKET_SCHEMA_VERSION,
+            created_at=created_at,
+        ),
         "evidenceBundleRef": str(docs_root / ".nextlens" / "evidence" / f"{selected_candidate_id}.json"),
         "createdAt": created_at,
     }
@@ -189,10 +199,34 @@ def _doctor_summary_payload(summary: Mapping[str, Any] | None) -> dict[str, Any]
     }
 
 
-def _bmad_consumer_hints(context: Mapping[str, Any], candidate: Mapping[str, Any]) -> dict[str, str]:
+def _bmad_consumer_hints(
+    context: Mapping[str, Any],
+    candidate: Mapping[str, Any],
+    *,
+    selected_feature: Mapping[str, Any],
+    trace: Mapping[str, Any],
+    schema_version: str,
+    created_at: str,
+) -> dict[str, Any]:
     hints = _mapping_value(candidate, "bmadConsumerHints") or _mapping_value(context, "bmadConsumerHints")
     return {
         "scopeContainmentWarning": str(hints.get("scopeContainmentWarning") or DEFAULT_SCOPE_CONTAINMENT_WARNING),
+        "selectedFeature": {
+            "goal": str(selected_feature.get("goal") or ""),
+            "includedScope": list(selected_feature.get("includedScope") or []),
+            "explicitOutOfScope": list(selected_feature.get("explicitOutOfScope") or []),
+        },
+        "architectureConstraints": {
+            "architectureRef": "architecture.md",
+            "schemaVersion": schema_version,
+            "packetCreatedAt": created_at,
+            "constraints": [
+                "single selected Feature packet",
+                "deterministic top-down traceability",
+                "BMAD scope containment",
+            ],
+        },
+        "traceabilityLineage": _traceability_lineage(trace, selected_feature),
         "prdInput": _hint_value(hints, context, "prdInput", "prd", "PRD goal and key requirements unavailable."),
         "uxInput": _hint_value(hints, context, "uxInput", "ux", "UX patterns and key flows unavailable."),
         "architectureInput": _hint_value(
@@ -217,6 +251,21 @@ def _bmad_consumer_hints(context: Mapping[str, Any], candidate: Mapping[str, Any
             "Implementation readiness status unavailable.",
         ),
     }
+
+
+def _traceability_lineage(trace: Mapping[str, Any], selected_feature: Mapping[str, Any]) -> str:
+    role_ids = _list_value(trace.get("roleIds"))
+    outcome_ids = _list_value(trace.get("outcomeIds"))
+    journey_ids = _list_value(trace.get("journeyIds"))
+    return " -> ".join(
+        (
+            f"system:{trace.get('systemId', 'unknown')}",
+            f"role:{', '.join(role_ids) if role_ids else 'unknown'}",
+            f"outcome:{', '.join(outcome_ids) if outcome_ids else 'unknown'}",
+            f"journey:{', '.join(journey_ids) if journey_ids else 'unknown'}",
+            f"Feature:{selected_feature.get('id', 'unknown')}",
+        )
+    )
 
 
 def _hint_value(
@@ -326,6 +375,12 @@ def _mapping_items(value: Any) -> list[Mapping[str, Any]]:
     if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
         return [item for item in value if isinstance(item, Mapping)]
     return []
+
+
+def _list_value(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [str(item) for item in value]
 
 
 def _append_missing(values: Sequence[Any], required_values: Sequence[str]) -> list[str]:

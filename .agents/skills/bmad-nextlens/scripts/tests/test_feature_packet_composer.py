@@ -118,9 +118,53 @@ def test_compose_feature_packet_populates_refs_summaries_and_bmad_hints() -> Non
         "informational_count": 1,
     }
     assert packet["salmonRoutingSummary"] == {"status": "created", "events": 1}
-    assert "scope" in packet["bmadConsumerHints"]["scopeContainmentWarning"].lower()
+    assert packet["bmadConsumerHints"]["scopeContainmentWarning"] == (
+        "This packet represents one selected Feature from top-down discovery. "
+        "Do not expand into adjacent journeys, future Features, platform architecture, "
+        "or unrelated outcomes unless Salmon or correct-course signals scope change."
+    )
     assert packet["bmadConsumerHints"]["prdInput"] == "PRD goal and key requirements."
     assert packet["bmadConsumerHints"]["readinessInput"] == "Implementation readiness is green."
+
+
+def test_compose_feature_packet_adds_bmad_scope_containment_metadata() -> None:
+    ranked = _ranked_candidates()
+
+    packet = FEATURE_PACKET_COMPOSER.compose_feature_packet(
+        ranked[0],
+        ranked,
+        _context(),
+        docs_path="docs/nextlens/src/feature-a",
+        packet_id_factory=lambda: "550e8400-e29b-41d4-a716-446655440000",
+        now_factory=lambda: datetime(2026, 5, 14, 12, 34, 56, tzinfo=timezone.utc),
+    ).packet
+    hints = packet["bmadConsumerHints"]
+
+    assert hints["selectedFeature"] == {
+        "goal": "Restore account access without widening scope.",
+        "includedScope": ["password reset", "self-service recovery"],
+        "explicitOutOfScope": [
+            "admin triage",
+            "adjacent journeys",
+            "future Features",
+            "platform architecture",
+            "unrelated outcomes",
+        ],
+    }
+    assert hints["architectureConstraints"] == {
+        "architectureRef": "architecture.md",
+        "schemaVersion": "nextlens.feature-packet.v1",
+        "packetCreatedAt": "2026-05-14T12:34:56Z",
+        "constraints": [
+            "single selected Feature packet",
+            "deterministic top-down traceability",
+            "BMAD scope containment",
+        ],
+    }
+    assert hints["traceabilityLineage"] == (
+        "system:system-nextlens -> role:role-operator -> outcome:outcome-reduced-ambiguity "
+        "-> journey:journey-account-recovery -> Feature:feature-password-recovery"
+    )
 
 
 def _ranked_candidates() -> tuple[FEATURE_SCORING.ScoredCandidate, ...]:
