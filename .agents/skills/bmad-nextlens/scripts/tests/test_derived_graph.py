@@ -141,6 +141,52 @@ def test_write_derived_graph_persists_required_graph_shape(tmp_path: Path) -> No
     assert payload["metadata"]["consistencyChecksum"]
 
 
+def test_validate_graph_consistency_passes_current_graph() -> None:
+    state = _landscape_state(
+        _entity("system", "system-nextlens", "NextLens"),
+        _entity("role", "role-architect", "Architect", {"systemId": "system-nextlens"}),
+    )
+    graph = DERIVED_GRAPH.rebuild_derived_graph(state).to_payload(source_state_ref="state-1")
+
+    result = DERIVED_GRAPH.validate_graph_consistency(graph, state)
+
+    assert result.status == "pass"
+    assert result.blocks_packet_emission is False
+    assert result.issues == ()
+
+
+def test_validate_graph_consistency_fails_for_stale_or_corrupt_graph() -> None:
+    state = _landscape_state(
+        _entity("system", "system-nextlens", "NextLens"),
+        _entity("role", "role-architect", "Architect", {"systemId": "system-nextlens"}),
+    )
+    graph = DERIVED_GRAPH.rebuild_derived_graph(state).to_payload(source_state_ref="state-1")
+    graph["nodes"] = graph["nodes"][:-1]
+    graph["edges"].append({"source": "system-nextlens", "target": "missing-role", "type": "system_role"})
+    graph["metadata"]["consistencyChecksum"] = "stale"
+
+    result = DERIVED_GRAPH.validate_graph_consistency(graph, state)
+    codes = {issue.code for issue in result.issues}
+
+    assert result.status == "fail"
+    assert result.blocks_packet_emission is True
+    assert "landscape_entity_missing_from_graph" in codes
+    assert "graph_edge_references_missing_node" in codes
+    assert "graph_checksum_stale" in codes
+    assert all(issue.recovery for issue in result.issues)
+
+
+def test_validate_graph_consistency_reports_advisory_orphans_without_blocking() -> None:
+    state = _landscape_state(_entity("risk", "risk-unused", "Unused Risk"))
+    graph = DERIVED_GRAPH.rebuild_derived_graph(state).to_payload(source_state_ref="state-1")
+
+    result = DERIVED_GRAPH.validate_graph_consistency(graph, state)
+
+    assert result.status == "advisory"
+    assert result.blocks_packet_emission is False
+    assert any(issue.code == "orphaned_graph_node" for issue in result.issues)
+
+
 class _Relationship:
     def __init__(self, relationship_name: str, target_id: str, target_entity: object | None) -> None:
         self.relationship_name = relationship_name

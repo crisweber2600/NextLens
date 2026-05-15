@@ -203,6 +203,36 @@ class DerivedGraphBuildResult:
         }
 
 
+@dataclass(frozen=True)
+class GraphConsistencyIssue:
+    severity: str
+    code: str
+    message: str
+    recovery: str
+
+    def to_payload(self) -> dict[str, str]:
+        return {
+            "severity": self.severity,
+            "code": self.code,
+            "message": self.message,
+            "recovery": self.recovery,
+        }
+
+
+@dataclass(frozen=True)
+class GraphConsistencyResult:
+    status: str
+    blocks_packet_emission: bool
+    issues: tuple[GraphConsistencyIssue, ...] = field(default_factory=tuple)
+
+    def to_payload(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "blocksPacketEmission": self.blocks_packet_emission,
+            "issues": [issue.to_payload() for issue in self.issues],
+        }
+
+
 def rebuild_derived_graph(landscape_state: Any) -> DerivedGraphBuildResult:
     nodes = _build_nodes(landscape_state)
     edges, warnings = _build_edges(landscape_state)
@@ -243,6 +273,93 @@ def generate_consistency_checksum(
     return hashlib.sha256("|".join([*node_ids, *edge_ids]).encode("utf-8")).hexdigest()
 
 
+def validate_graph_consistency(
+    graph_payload: Mapping[str, Any],
+    landscape_state: Any,
+) -> GraphConsistencyResult:
+    graph_nodes = _payload_items(graph_payload, "nodes")
+    graph_edges = _payload_items(graph_payload, "edges")
+    metadata = graph_payload.get("metadata") if isinstance(graph_payload, Mapping) else {}
+    metadata = metadata if isinstance(metadata, Mapping) else {}
+    landscape_ids = set(getattr(landscape_state, "entities_by_id", {}).keys())
+    node_ids = {str(node.get("id")) for node in graph_nodes if isinstance(node, Mapping) and node.get("id")}
+    issues: list[GraphConsistencyIssue] = []
+
+    for node_id in sorted(node_ids - landscape_ids):
+        issues.append(
+            GraphConsistencyIssue(
+                severity="fail",
+                code="graph_node_missing_from_landscape",
+                message=f"Graph node '{node_id}' does not exist in authoritative landscape state.",
+                recovery="Rebuild graph from current landscape state or restore the missing landscape entity.",
+            )
+        )
+
+    for landscape_id in sorted(landscape_ids - node_ids):
+        issues.append(
+            GraphConsistencyIssue(
+                severity="fail",
+                code="landscape_entity_missing_from_graph",
+                message=f"Landscape entity '{landscape_id}' is absent from derived graph.",
+                recovery="Rebuild graph before packet emission.",
+            )
+        )
+
+    for edge in graph_edges:
+        if not isinstance(edge, Mapping):
+            continue
+        source = str(edge.get("source") or "")
+        target = str(edge.get("target") or "")
+        if source not in node_ids or target not in node_ids:
+            issues.append(
+                GraphConsistencyIssue(
+                    severity="fail",
+                    code="graph_edge_references_missing_node",
+                    message=f"Graph edge '{source}->{target}' references a non-existent graph node.",
+                    recovery="Rebuild graph and fix any broken landscape relationships.",
+                )
+            )
+
+    current_graph = rebuild_derived_graph(landscape_state)
+    actual_checksum = str(metadata.get("consistencyChecksum") or "")
+    if actual_checksum != current_graph.checksum:
+        issues.append(
+            GraphConsistencyIssue(
+                severity="fail",
+                code="graph_checksum_stale",
+                message="Graph consistency checksum does not match current authoritative state.",
+                recovery="Rebuild graph from current landscape state before packet emission.",
+            )
+        )
+
+    for warning in current_graph.warnings:
+        issues.append(
+            GraphConsistencyIssue(
+                severity="advisory",
+                code="broken_landscape_reference",
+                message=warning,
+                recovery="Fix the referenced landscape relationship or accept advisory packet emission.",
+            )
+        )
+
+    for node_id in current_graph.orphaned_node_ids:
+        issues.append(
+            GraphConsistencyIssue(
+                severity="advisory",
+                code="orphaned_graph_node",
+                message=f"Graph node '{node_id}' has no incoming or outgoing edges.",
+                recovery="Connect the entity through landscape relationships or accept advisory packet emission.",
+            )
+        )
+
+    has_fail = any(issue.severity == "fail" for issue in issues)
+    if has_fail:
+        return GraphConsistencyResult(status="fail", blocks_packet_emission=True, issues=tuple(issues))
+    if issues:
+        return GraphConsistencyResult(status="advisory", blocks_packet_emission=False, issues=tuple(issues))
+    return GraphConsistencyResult(status="pass", blocks_packet_emission=False, issues=())
+
+
 def _build_nodes(landscape_state: Any) -> list[DerivedGraphNode]:
     nodes: list[DerivedGraphNode] = []
     entities_by_id = getattr(landscape_state, "entities_by_id", {})
@@ -260,6 +377,11 @@ def _build_nodes(landscape_state: Any) -> list[DerivedGraphNode]:
             )
         )
     return nodes
+
+
+def _payload_items(payload: Mapping[str, Any], key: str) -> list[Any]:
+    value = payload.get(key) if isinstance(payload, Mapping) else []
+    return list(value) if isinstance(value, list) else []
 
 
 def _build_edges(landscape_state: Any) -> tuple[list[DerivedGraphEdge], list[str]]:
