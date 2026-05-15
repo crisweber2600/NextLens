@@ -292,8 +292,12 @@ def _marketplace_json_text() -> str:
             {
                 "id": capability["command"],
                 "name": capability["name"],
+                "module": "nxl",
                 "description": capability["description"],
-                "skills": [capability["skill_dir"]],
+                "skills": [
+                    ".agents/skills/bmad-nextlens-setup",
+                    capability["skill_dir"],
+                ] if capability["command"] != "nextlens-setup" else [capability["skill_dir"]],
             }
             for capability in CAPABILITIES
         ],
