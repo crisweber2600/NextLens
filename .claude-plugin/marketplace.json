@@ -1,0 +1,42 @@
+{
+  "name": "NextLens Top-Down Bridge",
+  "version": "1.0.0",
+  "description": "Deterministic v1 top-down Feature packet bridge with validation and correction routing",
+  "author": "NextLens Team",
+  "repository": "https://github.com/crisweber2600/NextLens",
+  "plugins": [
+    {
+      "id": "nextlens-new",
+      "name": "NextLens New Packet",
+      "description": "Create one Feature packet from top-down discovery context",
+      "skills": [
+        ".agents/skills/bmad-nextlens/SKILL.md"
+      ]
+    },
+    {
+      "id": "nextlens-doctor",
+      "name": "NextLens Doctor",
+      "description": "Run non-mutating validation checks on packet or landscape",
+      "skills": [
+        ".agents/skills/bmad-nextlens/SKILL.md"
+      ]
+    },
+    {
+      "id": "nextlens-salmon",
+      "name": "NextLens Salmon",
+      "description": "Route correction signals through deduplication and impact classification",
+      "skills": [
+        ".agents/skills/bmad-nextlens/SKILL.md"
+      ]
+    }
+  ],
+  "keywords": [
+    "nextlens",
+    "top-down",
+    "feature-packet",
+    "bmad-module",
+    "doctor-validation",
+    "salmon-routing"
+  ],
+  "license": "MIT"
+}
