@@ -70,7 +70,7 @@ def test_module_help_registers_nextlens_actions() -> None:
     module_help = Path(__file__).resolve().parents[2] / "assets" / "module-help.csv"
     text = module_help.read_text(encoding="utf-8")
 
-    assert "NextLens,bmad-nextlens,Create Feature Packet,NN" in text
-    assert "NextLens,bmad-nextlens,Run Doctor Checks,ND" in text
-    assert "NextLens,bmad-nextlens,Route Salmon Findings,NS" in text
-    assert "NextLens,bmad-nextlens,Show NextLens Help,NH" in text
+    assert "command,category,description,entry_point,trigger_keywords" in text
+    assert "nextlens-new,command" in text
+    assert "nextlens-doctor,command" in text
+    assert "nextlens-salmon,command" in text
