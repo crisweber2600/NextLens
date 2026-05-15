@@ -353,6 +353,9 @@ def _validate_marketplace(root: Path, payload: Mapping[str, Any], findings: list
     for field_name in ("name", "owner", "license", "homepage", "repository", "keywords", "plugins"):
         if field_name not in payload:
             findings.append(_finding("marketplace-missing-field", f"marketplace.json missing {field_name}.", "Regenerate marketplace.json with create-module."))
+    owner = payload.get("owner")
+    if not isinstance(owner, Mapping) or not str(owner.get("name") or "").strip():
+        findings.append(_finding("marketplace-owner", "marketplace.json owner must include a non-empty name.", "Set owner.name in marketplace.json."))
     plugins = _mapping_sequence(payload.get("plugins"))
     if len(plugins) != 1:
         findings.append(_finding("marketplace-plugin-count", "marketplace.json must expose one installable plugin for the multi-skill NextLens module.", "Regenerate marketplace.json with create-module."))
@@ -363,6 +366,9 @@ def _validate_marketplace(root: Path, payload: Mapping[str, Any], findings: list
         version = str(plugin.get("version") or "")
         if not MODULE_VERSION_PATTERN.match(version):
             findings.append(_finding("marketplace-semver", "marketplace plugin version must use major.minor.patch semantic versioning.", "Set plugin version to a value such as 1.0.0."))
+        author = plugin.get("author")
+        if not isinstance(author, Mapping) or not str(author.get("name") or "").strip():
+            findings.append(_finding("marketplace-author", "marketplace plugin author must include a non-empty name.", "Set plugin author.name in marketplace.json."))
         source = str(plugin.get("source") or "")
         if source != "./":
             findings.append(_finding("marketplace-source", "marketplace plugin source must point at the repository root.", "Set plugin source to './'."))
