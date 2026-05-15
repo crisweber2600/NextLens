@@ -27,6 +27,7 @@ def test_create_module_package_regenerates_manifests_and_checksum_report(tmp_pat
     assert result.status == "pass"
     assert result.approved_for_distribution is True
     assert (repo_root / ".agents" / "skills" / "bmad-nextlens-setup" / "assets" / "module.yaml").is_file()
+    assert (repo_root / "skills" / "module.yaml").is_file()
     assert (repo_root / ".agents" / "skills" / "bmad-nextlens-setup" / "assets" / "module-help.csv").is_file()
     assert (repo_root / ".claude-plugin" / "marketplace.json").is_file()
     assert result.report_path == repo_root / ".claude-plugin" / "module-gates.json"
@@ -35,6 +36,7 @@ def test_create_module_package_regenerates_manifests_and_checksum_report(tmp_pat
     assert report["generated_at"] == "2026-05-14T12:00:00Z"
     assert {item["path"] for item in report["generated_files"]} == {
         ".agents/skills/bmad-nextlens-setup/assets/module.yaml",
+        "skills/module.yaml",
         ".agents/skills/bmad-nextlens-setup/assets/module-help.csv",
         ".claude-plugin/marketplace.json",
     }
@@ -81,6 +83,21 @@ def test_validate_module_package_blocks_inconsistent_capability_sets(tmp_path: P
     assert result.status == "fail"
     assert any(finding.check_id == "module-help-action-set" for finding in result.findings)
     assert any(finding.check_id == "manifest-command-consistency" for finding in result.findings)
+
+
+def test_validate_module_package_requires_config_discovery_manifest_to_mirror_setup_manifest(tmp_path: Path) -> None:
+    repo_root = _repo_fixture(tmp_path)
+    MODULE_GATES.create_module_package(repo_root)
+    config_discovery_module = repo_root / "skills" / "module.yaml"
+    config_discovery_module.write_text(
+        config_discovery_module.read_text(encoding="utf-8").replace("code: nxl", "code: stale"),
+        encoding="utf-8",
+    )
+
+    result = MODULE_GATES.validate_module_package(repo_root)
+
+    assert result.status == "fail"
+    assert any(finding.check_id == "config-discovery-module-yaml" for finding in result.findings)
 
 
 def test_validate_module_package_requires_marketplace_owner_name(tmp_path: Path) -> None:
@@ -139,6 +156,7 @@ def _repo_fixture(tmp_path: Path) -> Path:
 
     for relative_path in (
         ".agents/skills/bmad-nextlens-setup/assets/module.yaml",
+        "skills/module.yaml",
         ".agents/skills/bmad-nextlens-setup/assets/module-help.csv",
         ".claude-plugin/marketplace.json",
     ):

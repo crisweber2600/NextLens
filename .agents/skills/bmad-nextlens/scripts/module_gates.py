@@ -27,6 +27,7 @@ else:
 MODULE_VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
 SETUP_SKILL = "bmad-nextlens-setup"
 SETUP_ASSETS_DIR = Path(".agents") / "skills" / SETUP_SKILL / "assets"
+CONFIG_DISCOVERY_MODULE_YAML = Path("skills") / "module.yaml"
 EXPECTED_MARKETPLACE_PLUGIN_COUNT = 1
 
 CAPABILITIES = (
@@ -152,8 +153,10 @@ class ModuleGateResult:
 def create_module_package(repo_root: str | Path, *, now_factory: Callable[[], datetime] | None = None) -> ModuleGateResult:
     root = Path(repo_root)
     generated_at = _utc_timestamp(now_factory)
+    module_yaml_text = _module_yaml_text()
     files = {
-        root / SETUP_ASSETS_DIR / "module.yaml": _module_yaml_text(),
+        root / SETUP_ASSETS_DIR / "module.yaml": module_yaml_text,
+        root / CONFIG_DISCOVERY_MODULE_YAML: module_yaml_text,
         root / SETUP_ASSETS_DIR / "module-help.csv": _module_help_text(),
         root / ".claude-plugin" / "marketplace.json": _marketplace_json_text(),
     }
@@ -193,11 +196,14 @@ def validate_module_package(repo_root: str | Path) -> ModuleGateResult:
     root = Path(repo_root)
     findings: list[ModuleGateFinding] = []
     module_yaml = _load_yaml(root / SETUP_ASSETS_DIR / "module.yaml", findings)
+    config_discovery_module_yaml = _load_yaml(root / CONFIG_DISCOVERY_MODULE_YAML, findings)
     module_help = _load_module_help(root / SETUP_ASSETS_DIR / "module-help.csv", findings)
     marketplace = _load_json(root / ".claude-plugin" / "marketplace.json", findings)
 
     if module_yaml:
         _validate_module_yaml(module_yaml, findings)
+    if config_discovery_module_yaml and module_yaml and config_discovery_module_yaml != module_yaml:
+        findings.append(_finding("config-discovery-module-yaml", "skills/module.yaml must mirror the setup skill module.yaml.", "Regenerate module surfaces with create-module."))
     if module_help:
         _validate_module_help(module_help, findings)
     if marketplace:
