@@ -53,12 +53,11 @@ def render_candidate_selection(
     selected_rank = ordered_ids.index(active_selected_id) + 1
     lines.extend(_render_selected_candidate(selected_candidate, selected_payload, selected_rank))
 
-    alternative_rank = 2
-    for candidate_id in ordered_ids:
-        if candidate_id == active_selected_id:
-            continue
+    for alternative_rank, candidate_id in enumerate(ordered_ids, start=1):
         if alternative_rank > 3:
             break
+        if candidate_id == active_selected_id:
+            continue
         alternative_candidate = ranked_lookup[candidate_id]
         alternative_payload = candidates_by_id.get(candidate_id, {})
         lines.extend(
@@ -176,7 +175,7 @@ def handle_candidate_selection_response(
             return CandidateSelectionResult(
                 status="invalid_response",
                 state=state,
-                output_lines=("Invalid candidate choice. Select rank 2, rank 3, or a candidate id.",),
+                output_lines=("Invalid candidate choice. Select a displayed rank or a candidate id.",),
             )
         next_state = CandidateSelectionState(
             ranked_candidate_ids=state.ranked_candidate_ids,
@@ -201,6 +200,7 @@ def handle_candidate_selection_response(
 def _render_selected_candidate(candidate: Any, payload: Mapping[str, Any], rank: int) -> list[str]:
     factors = candidate.factor_map()
     lines = [f"{rank}. Selected Candidate (Rank {rank}):"]
+    lines.append(f"id: {candidate.candidate_id}")
     lines.append(f"name: {_candidate_name(candidate, payload)}")
     lines.append(f"goal: {_candidate_goal(payload)}")
     lines.append(f"score: {candidate.composite_score:.2f}")
@@ -226,6 +226,7 @@ def _render_alternative_candidate(
     rank: int,
 ) -> list[str]:
     lines = [f"{rank}. Alternative (Rank {rank}):"]
+    lines.append(f"id: {candidate.candidate_id}")
     lines.append(f"name: {_candidate_name(candidate, payload)}")
     lines.append(f"score: {candidate.composite_score:.2f}")
     lines.append(f"reason_not_selected: {_alternative_reason(selected_candidate, candidate)}")
@@ -254,9 +255,9 @@ def _resolve_alternative_choice(
     response: str,
     ranked_lookup: Mapping[str, Any],
 ) -> str | None:
-    if response in {"2", "3"}:
+    if response.isdigit():
         rank = int(response)
-        if rank <= len(state.ranked_candidate_ids):
+        if 1 <= rank <= min(3, len(state.ranked_candidate_ids)):
             candidate_id = state.ranked_candidate_ids[rank - 1]
             if candidate_id != state.selected_candidate_id:
                 return candidate_id

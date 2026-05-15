@@ -41,6 +41,8 @@ def test_render_candidate_selection_includes_selected_details_and_alternative_re
 
     lines = CANDIDATE_SELECTION.render_candidate_selection(ranked, candidates_by_id)
 
+    assert "id: feature-password-recovery" in lines
+    assert "id: feature-journey-health" in lines
     assert "name: Password Recovery" in lines
     assert "goal: Restore account access without widening scope" in lines
     assert any(line.startswith("score: 88.50") for line in lines)
@@ -150,6 +152,42 @@ def test_handle_candidate_selection_response_allows_alternative_selection() -> N
     assert alternative.state.selected_candidate_id == "feature-journey-health"
     assert "2. Selected Candidate (Rank 2):" in alternative.output_lines
     assert alternative.output_lines[-1] == "No Feature packet is emitted from candidate selection."
+
+
+def test_handle_candidate_selection_response_allows_displayed_rank_after_declining_rank_two() -> None:
+    ranked = _ranked_candidates()
+    candidates_by_id = _candidates_by_id()
+    state = CANDIDATE_SELECTION.initialize_candidate_selection(ranked)
+    rank_two = CANDIDATE_SELECTION.handle_candidate_selection_response(
+        state,
+        "2",
+        ranked,
+        candidates_by_id,
+    )
+    declined = CANDIDATE_SELECTION.handle_candidate_selection_response(
+        rank_two.state,
+        "n",
+        ranked,
+        candidates_by_id,
+    )
+    choose_other = CANDIDATE_SELECTION.handle_candidate_selection_response(
+        declined.state,
+        "1",
+        ranked,
+        candidates_by_id,
+    )
+    alternative = CANDIDATE_SELECTION.handle_candidate_selection_response(
+        choose_other.state,
+        "1",
+        ranked,
+        candidates_by_id,
+    )
+
+    assert choose_other.status == "select_alternative"
+    assert "1. Password Recovery (feature-password-recovery)" in choose_other.output_lines
+    assert alternative.status == "alternative_selected"
+    assert alternative.state.selected_candidate_id == "feature-password-recovery"
+    assert "1. Selected Candidate (Rank 1):" in alternative.output_lines
 
 
 def _ranked_candidates() -> tuple[FEATURE_SCORING.ScoredCandidate, ...]:
