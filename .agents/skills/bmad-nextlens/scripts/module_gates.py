@@ -314,8 +314,8 @@ def _marketplace_plugin_skills() -> list[str]:
     setup_skill_dir = ".agents/skills/bmad-nextlens-setup"
     skills = [setup_skill_dir]
     for capability in CAPABILITIES:
-        skill_dir = capability["skill_dir"]
-        if skill_dir not in skills:
+        skill_dir = str(capability.get("skill_dir", "")).strip()
+        if skill_dir and skill_dir not in skills:
             skills.append(skill_dir)
     return skills
 
@@ -365,7 +365,6 @@ def _validate_marketplace(root: Path, payload: Mapping[str, Any], findings: list
     plugins = _mapping_sequence(payload.get("plugins"))
     if len(plugins) != 1:
         findings.append(_finding("marketplace-plugin-count", "marketplace.json must expose one installable plugin for the multi-skill NextLens module.", "Regenerate marketplace.json with create-module."))
-        return
     for plugin in plugins:
         for field_name in ("name", "source", "description", "version", "author", "skills"):
             if field_name not in plugin:
