@@ -373,9 +373,9 @@ def _build_traceability_check() -> DoctorCheck:
         check_id="traceability",
         name="Feature traceability",
         category="traceability",
-        severity="advisory",
-        description="Validate packet trace links to authoritative landscape entities.",
-        remediation="Update packet trace fields to include resolvable IDs.",
+        severity="blocking",
+        description="Validate packet trace links to authoritative landscape entities and preserves top-down lineage.",
+        remediation="Update packet trace fields to include resolvable system, role, outcome, operating loop, journey, and relationship lineage.",
         execute=_check_traceability,
     )
 
@@ -386,8 +386,8 @@ def _build_context_readiness_check() -> DoctorCheck:
         name="Context readiness",
         category="readiness",
         severity="advisory",
-        description="Validate top-down context readiness fields required by downstream stages.",
-        remediation="Populate BMAD hints, thesis, roles, outcomes, journeys, risks, and open questions.",
+        description="Validate advisory BMAD handoff context captured alongside the selected Feature.",
+        remediation="Populate BMAD hints, risks, and open questions when they are available.",
         execute=_check_context_readiness,
     )
 
@@ -440,6 +440,20 @@ def _check_schema_validity(context: DoctorCheckContext) -> DoctorCheckResult:
     if warnings:
         failures.extend(warnings)
 
+    packet = _thaw_mapping(_as_mapping(context.packet_candidate))
+    if packet:
+        packet_schema = _load_runtime_module("feature_packet_schema", "feature_packet_schema.py")
+        packet_validation = packet_schema.validate_feature_packet_schema(packet)
+        if not packet_validation.is_valid:
+            failures.extend(
+                f"packet.{error.field}: {error.message}"
+                for error in packet_validation.errors
+            )
+
+        evidence_bundle_ref = str(packet.get("evidenceBundleRef") or "").strip()
+        if evidence_bundle_ref and not evidence_bundle_ref.lower().endswith(".yaml"):
+            failures.append("packet.evidenceBundleRef: evidenceBundleRef must point to a YAML evidence bundle.")
+
     if failures:
         return DoctorCheckResult(
             status="fail",
@@ -485,7 +499,7 @@ def _check_feature_scope(context: DoctorCheckContext) -> DoctorCheckResult:
             severity="blocking",
             check_id="feature-scope",
             message="Feature scope check found blocking spillage risk.",
-            references=tuple(_dedupe_values(offending)),
+            references=tuple(_dedupe_values(findings)),
             remediation="Remove adjacent journeys, future features, and unrelated platform scopes from includedScope; populate explicitOutOfScope.",
         )
     return DoctorCheckResult(
@@ -509,52 +523,101 @@ def _check_traceability(context: DoctorCheckContext) -> DoctorCheckResult:
     system_id = str(trace.get("systemId") or "").strip()
     if not system_id:
         issues.append("packet.trace.systemId is missing")
+        references.append("trace.systemId")
     elif system_id not in entities_by_id:
         issues.append(f"systemId '{system_id}' does not resolve")
         references.append(system_id)
 
-    role_ids = _as_list(trace.get("roleIds"))
+    role_ids = [str(value).strip() for value in _as_list(trace.get("roleIds")) if str(value or "").strip()]
+    if not role_ids:
+        issues.append("trace.roleIds must contain at least one role id")
+        references.append("trace.roleIds")
     role_invalid = _invalid_references(role_ids, _ids_by_type(entities_by_id, "role"))
     if role_invalid:
         issues.append(f"trace.roleIds contains unresolved ids: {', '.join(role_invalid)}")
         references.extend(role_invalid)
 
-    outcome_ids = _as_list(trace.get("outcomeIds"))
+    outcome_ids = [str(value).strip() for value in _as_list(trace.get("outcomeIds")) if str(value or "").strip()]
+    if not outcome_ids:
+        issues.append("trace.outcomeIds must contain at least one outcome id")
+        references.append("trace.outcomeIds")
     outcome_invalid = _invalid_references(outcome_ids, _ids_by_type(entities_by_id, "outcome"))
     if outcome_invalid:
         issues.append(f"trace.outcomeIds contains unresolved ids: {', '.join(outcome_invalid)}")
         references.extend(outcome_invalid)
 
-    journey_ids = _as_list(trace.get("journeyIds"))
+    journey_ids = [str(value).strip() for value in _as_list(trace.get("journeyIds")) if str(value or "").strip()]
+    if not journey_ids:
+        issues.append("trace.journeyIds must contain at least one journey id")
+        references.append("trace.journeyIds")
     journey_invalid = _invalid_references(journey_ids, _ids_by_type(entities_by_id, "journey"))
     if journey_invalid:
         issues.append(f"trace.journeyIds contains unresolved ids: {', '.join(journey_invalid)}")
         references.extend(journey_invalid)
+
+    operating_loop_ids = [
+        str(value).strip()
+        for value in _as_list(trace.get("operatingLoopIds"))
+        if str(value or "").strip()
+    ]
+    if not operating_loop_ids:
+        issues.append("trace.operatingLoopIds must contain at least one operating loop id")
+        references.append("trace.operatingLoopIds")
+    operating_loop_invalid = _invalid_references(
+        operating_loop_ids,
+        _ids_by_type(entities_by_id, "operating_loop"),
+    )
+    if operating_loop_invalid:
+        issues.append(
+            "trace.operatingLoopIds contains unresolved ids: "
+            + ", ".join(operating_loop_invalid)
+        )
+        references.extend(operating_loop_invalid)
+
+    relationship_refs = [
+        str(value).strip()
+        for value in _as_list(trace.get("relationshipRefs"))
+        if str(value or "").strip()
+    ]
+    if not relationship_refs:
+        issues.append("trace.relationshipRefs must contain at least one relationship reference")
+        references.append("trace.relationshipRefs")
 
     selection_rationale = packet.get("selectionRationale")
     if not _has_meaningful_value(selection_rationale):
         issues.append("selectionRationale is required")
         references.append("packet.selectionRationale")
 
+    source_context_refs = [
+        str(value).strip()
+        for value in _as_list(packet.get("sourceContextRefs"))
+        if str(value or "").strip()
+    ]
+    if not source_context_refs:
+        issues.append("sourceContextRefs must contain at least one source context reference")
+        references.append("packet.sourceContextRefs")
+
     if issues:
         return DoctorCheckResult(
-            status="warning",
-            severity="advisory",
+            status="fail",
+            severity="blocking",
             check_id="traceability",
-            message="Traceability has unresolved references that does not resolve to valid landscape IDs.",
+            message="Traceability check found blocking top-down lineage gaps.",
             references=tuple(_dedupe_values(references)),
-            remediation="Align packet trace with valid landscape IDs or refresh candidate generation.",
+            remediation="Align packet trace with valid landscape IDs and restore the required lineage before emission.",
         )
     return DoctorCheckResult(
         status="pass",
-        severity="advisory",
+        severity="blocking",
         check_id="traceability",
-        message="Packet traceability is resolvable.",
+        message="Packet traceability is resolvable and top-down lineage is intact.",
         references=(
             f"system:{system_id}",
             f"roles:{len(role_ids)}",
             f"outcomes:{len(outcome_ids)}",
             f"journeys:{len(journey_ids)}",
+            f"operatingLoops:{len(operating_loop_ids)}",
+            f"relationships:{len(relationship_refs)}",
         ),
         remediation="",
     )
@@ -566,29 +629,9 @@ def _check_context_readiness(context: DoctorCheckContext) -> DoctorCheckResult:
     hints = _as_mapping(packet.get("bmadConsumerHints"))
     if not hints:
         hints = _as_mapping(packet.get("bmadConsumerContext"))
-    for field in ("prdInput", "uxInput", "architectureInput"):
+    for field in ("prdInput", "uxInput", "architectureInput", "epicStoryInput", "readinessInput"):
         if not _has_meaningful_value(hints.get(field)):
             missing.append(field)
-
-    system = _as_mapping(packet.get("system"))
-    if not _has_meaningful_value(system.get("thesis")):
-        missing.append("system.thesis")
-
-    roles = _as_list(packet.get("roles"))
-    outcomes = _as_list(packet.get("outcomes"))
-    journeys = _as_list(packet.get("journeys"))
-    if not roles:
-        roles = _as_list(_extract_by_type(packet, "roles"))
-        if not roles:
-            missing.append("roles")
-    if not outcomes:
-        outcomes = _as_list(_extract_by_type(packet, "outcomes"))
-        if not outcomes:
-            missing.append("outcomes")
-    if not journeys:
-        journeys = _as_list(_extract_by_type(packet, "journeys"))
-        if not journeys:
-            missing.append("journeys")
 
     open_questions = _as_list(packet.get("openQuestions"))
     risks = _as_list(packet.get("risks"))
@@ -861,6 +904,10 @@ def _scope_label(value: Any) -> str:
 
 
 def _scope_issue(value: str) -> str | None:
+    if value == "system" or value.startswith("system-") or value.startswith("system."):
+        return f"{value} expands scope to the full system"
+    if _contains_word(value, "full") and _contains_word(value, "system"):
+        return f"{value} expands scope to the full system"
     if _contains_word(value, "adjacent") and _contains_word(value, "journey"):
         return f"{value} contains adjacent journey scope"
     if _contains_word(value, "future") and _contains_word(value, "feature"):
@@ -970,4 +1017,14 @@ def _freeze_mapping(value: Any) -> Any:
         return tuple(_freeze_mapping(item) for item in value)
     if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray, MappingProxyType)):
         return tuple(_freeze_mapping(item) for item in value)
+    return copy.deepcopy(value)
+
+
+def _thaw_mapping(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {key: _thaw_mapping(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_thaw_mapping(item) for item in value]
+    if isinstance(value, list):
+        return [_thaw_mapping(item) for item in value]
     return copy.deepcopy(value)

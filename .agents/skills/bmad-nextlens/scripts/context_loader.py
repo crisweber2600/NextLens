@@ -23,9 +23,15 @@ REQUIRED_ROOT_FIELDS = (
     "system",
     "discoveryEpoch",
     "roles",
+    "stakeholders",
     "outcomes",
+    "operatingLoops",
     "journeys",
     "candidateFeatures",
+    "openQuestions",
+    "risks",
+    "decisions",
+    "relationshipRefs",
 )
 REQUIRED_OBJECT_FIELDS = {
     "system": ("id", "name", "thesis", "status", "confidence"),
@@ -132,7 +138,7 @@ def evaluate_context_sufficiency(
         _evaluate_journey_coverage(payload, missing_required),
         _evaluate_candidate_traceability(payload, missing_required),
         _evaluate_risks_and_questions(payload, missing_required, warnings),
-        _evaluate_bmad_consumer_context(payload, warnings),
+        _evaluate_bmad_consumer_context(payload, missing_required, warnings),
     ]
 
     if missing_required:
@@ -415,12 +421,13 @@ def _evaluate_risks_and_questions(
 
 def _evaluate_bmad_consumer_context(
     payload: Mapping[str, Any],
-    warnings: list[str],
+    missing_required: list[str],
+    _warnings: list[str],
 ) -> ContextSufficiencyGate:
     raw_value = payload.get("bmadConsumerContext")
     present = _has_meaningful_value(raw_value)
     if not present:
-        warnings.append("bmad_hints is missing bmadConsumerContext.")
+        missing_required.append("bmad_hints")
     return ContextSufficiencyGate(
         name="bmad_hints",
         passed=present,

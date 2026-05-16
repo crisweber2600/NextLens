@@ -111,6 +111,11 @@ def test_compose_feature_packet_populates_refs_summaries_and_bmad_hints() -> Non
     ]
     assert packet["authoritativeStateRef"] == "docs/nextlens/src/feature-a/landscape"
     assert packet["derivedGraphRef"] == "docs/nextlens/src/feature-a/derived/graph.json"
+    assert packet["evidenceBundleRef"] == str(
+        Path("docs/nextlens/src/feature-a")
+        / ".nextlens"
+        / "evidence-550e8400-e29b-41d4-a716-446655440000.yaml"
+    )
     assert packet["doctorSummary"] == {
         "status": "advisory",
         "blocking_count": 0,
@@ -118,6 +123,9 @@ def test_compose_feature_packet_populates_refs_summaries_and_bmad_hints() -> Non
         "informational_count": 1,
     }
     assert packet["salmonRoutingSummary"] == {"status": "created", "events": 1}
+    assert packet["openQuestions"] == ["Which recovery factor is required first?"]
+    assert packet["risks"] == ["Recovery work could widen auth scope."]
+    assert packet["decisions"] == ["Confirm the first recovery channel."]
     assert packet["bmadConsumerHints"]["scopeContainmentWarning"] == (
         "This packet represents one selected Feature from top-down discovery. "
         "Do not expand into adjacent journeys, future Features, platform architecture, "
@@ -217,4 +225,7 @@ def _context() -> dict[str, object]:
                 },
             }
         ],
+        "openQuestions": ["Which recovery factor is required first?"],
+        "risks": ["Recovery work could widen auth scope."],
+        "decisions": ["Confirm the first recovery channel."],
     }

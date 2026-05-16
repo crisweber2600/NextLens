@@ -83,7 +83,6 @@ def test_evaluate_context_sufficiency_returns_ready_with_warnings() -> None:
     payload = _sufficient_context()
     payload["risks"] = ["risk-1"]
     payload["openQuestions"] = ["question-1", "question-2"]
-    payload.pop("bmadConsumerContext")
 
     report = CONTEXT_LOADER.evaluate_context_sufficiency(payload)
 
@@ -92,7 +91,17 @@ def test_evaluate_context_sufficiency_returns_ready_with_warnings() -> None:
     assert report.missing_required == ()
     assert "risks_captured has fewer than 3 risks (1)." in report.warnings
     assert "risks_captured has fewer than 3 open questions (2)." in report.warnings
-    assert "bmad_hints is missing bmadConsumerContext." in report.warnings
+
+
+def test_evaluate_context_sufficiency_blocks_when_bmad_consumer_context_missing() -> None:
+    payload = _sufficient_context()
+    payload.pop("bmadConsumerContext")
+
+    report = CONTEXT_LOADER.evaluate_context_sufficiency(payload)
+
+    assert report.status == "blocked"
+    assert report.recommendation == "return_to_discovery"
+    assert report.missing_required == ("bmad_hints",)
 
 
 def test_evaluate_context_sufficiency_returns_blocked_and_lists_failed_gates() -> None:
@@ -179,17 +188,15 @@ def test_format_context_sufficiency_report_for_warnings_status() -> None:
     payload = _sufficient_context()
     payload["risks"] = ["risk-1"]
     payload["openQuestions"] = ["question-1", "question-2"]
-    payload.pop("bmadConsumerContext")
     report = CONTEXT_LOADER.evaluate_context_sufficiency(payload)
 
     lines = CONTEXT_LOADER.format_context_sufficiency_report(report)
 
     assert "risks_captured: [✓] 1 risks" in lines
-    assert "bmad_hints: [✗] missing hints" in lines
+    assert "bmad_hints: [✓] present hints" in lines
     assert "status: ready_with_warnings" in lines
     assert "recommendation: ask_for_confirmation" in lines
     assert "warnings:" in lines
-    assert any("bmad_hints is missing bmadConsumerContext." in line for line in lines)
     assert "confirmation_required: yes" in lines
 
 

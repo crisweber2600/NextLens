@@ -74,6 +74,9 @@ def compose_feature_packet(
             ranked_candidates,
             candidate_definition,
         ),
+        "openQuestions": _first_list(candidate_definition, context, keys=("openQuestions", "open_questions")),
+        "risks": _first_list(candidate_definition, context, keys=("risks",)),
+        "decisions": _first_list(candidate_definition, context, keys=("decisions",)),
         "sourceContextRefs": list(source_context_refs or SOURCE_CONTEXT_REFS),
         "authoritativeStateRef": str(authoritative_state_ref or docs_root / "landscape"),
         "derivedGraphRef": str(derived_graph_ref or docs_root / "derived" / "graph.json"),
@@ -87,7 +90,7 @@ def compose_feature_packet(
             schema_version=schema_module.FEATURE_PACKET_SCHEMA_VERSION,
             created_at=created_at,
         ),
-        "evidenceBundleRef": str(docs_root / ".nextlens" / "evidence" / f"{selected_candidate_id}.json"),
+        "evidenceBundleRef": str(docs_root / ".nextlens" / f"evidence-{packet_id}.yaml"),
         "createdAt": created_at,
     }
     validation = schema_module.validate_feature_packet_schema(

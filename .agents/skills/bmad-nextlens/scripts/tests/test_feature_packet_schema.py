@@ -135,6 +135,6 @@ def _valid_packet() -> dict[str, object]:
             "epicStoryInput": "Epic and story planning context.",
             "readinessInput": "Implementation readiness context.",
         },
-        "evidenceBundleRef": "docs/.nextlens/evidence/feature-password-recovery.json",
+        "evidenceBundleRef": "docs/.nextlens/evidence-packet-123.yaml",
         "createdAt": "2026-05-14T12:34:56Z",
     }

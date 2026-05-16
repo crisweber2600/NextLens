@@ -101,6 +101,17 @@ def _reconstructed_connected_state(tmp_path: Path):
         source_path=tmp_path / "journey.yaml",
         resolved_relationships={},
     )
+    operating_loop = LANDSCAPE_STORE.ReconstructedLandscapeEntity(
+        entity_type="operating_loop",
+        semantic_id="loop-planning",
+        opaque_id="opaque-loop-planning",
+        name="Planning Loop",
+        snapshot={},
+        relationships={},
+        metadata={},
+        source_path=tmp_path / "operating-loop.yaml",
+        resolved_relationships={},
+    )
     system.resolved_relationships = {
         "roles": (
             LANDSCAPE_STORE.LandscapeRelationship("roles", role.semantic_id, role, {}),
@@ -116,36 +127,70 @@ def _reconstructed_connected_state(tmp_path: Path):
             LANDSCAPE_STORE.LandscapeRelationship("journeys", journey.semantic_id, journey, {}),
         )
     }
+    journey.resolved_relationships = {
+        "operatingLoops": (
+            LANDSCAPE_STORE.LandscapeRelationship(
+                "operatingLoops",
+                operating_loop.semantic_id,
+                operating_loop,
+                {},
+            ),
+        )
+    }
     return _build_landscape_state(
         {
             system.semantic_id: system,
             role.semantic_id: role,
             outcome.semantic_id: outcome,
             journey.semantic_id: journey,
+            operating_loop.semantic_id: operating_loop,
         }
     )
 
 
 def _base_packet_payload() -> dict[str, object]:
     return {
+        "schemaVersion": "nextlens.feature-packet.v1",
+        "packetId": "550e8400-e29b-41d4-a716-446655440000",
+        "featureId": "feature-password-recovery",
+        "sourceMode": "top_down",
+        "selectedFeature": {
+            "id": "feature-password-recovery",
+            "name": "Password Recovery",
+            "goal": "Restore account access without widening scope.",
+            "includedScope": ["password reset", "self-service recovery"],
+            "explicitOutOfScope": ["admin triage", "future auth platform"],
+        },
         "trace": {
             "systemId": "system-main",
+            "discoveryEpochId": "epoch-2026-05-14",
             "roleIds": ["role-operator"],
             "outcomeIds": ["outcome-reduce-ambiguity"],
             "journeyIds": ["journey-onboard"],
+            "operatingLoopIds": ["loop-planning"],
+            "relationshipRefs": ["system-main->role-operator"],
         },
-        "selectionRationale": "selected by operator for this release",
+        "selectionRationale": {
+            "score": 88.5,
+            "tieBreakEvidence": {"outcome_alignment": {"score": 88.5, "detail": "highest"}},
+            "whyThisFeature": "selected by operator for this release",
+            "whyNow": "ready for bounded planning",
+            "rejectedAlternates": [],
+        },
+        "sourceContextRefs": ["docs/context/topdown.yaml"],
+        "authoritativeStateRef": "docs/.nextlens/state/feature-password-recovery.yaml",
+        "derivedGraphRef": "docs/.nextlens/derived/graph.json",
+        "doctorSummary": {"status": "pass"},
+        "salmonRoutingSummary": {"status": "not_required"},
         "bmadConsumerHints": {
             "prdInput": "product input",
             "uxInput": "ux input",
             "architectureInput": "architecture input",
+            "epicStoryInput": "story input",
+            "readinessInput": "ready",
         },
-        "system": {
-            "thesis": "Increase planning signal quality through deterministic selection",
-        },
-        "roles": [{"id": "role-operator"}],
-        "outcomes": [{"id": "outcome-reduce-ambiguity"}],
-        "journeys": [{"id": "journey-onboard"}],
+        "evidenceBundleRef": "docs/.nextlens/evidence-packet-123.yaml",
+        "createdAt": "2026-05-14T12:34:56Z",
         "openQuestions": ["What is success?"],
         "risks": ["Missing context"],
     }
@@ -153,10 +198,11 @@ def _base_packet_payload() -> dict[str, object]:
 
 def _base_selected_feature() -> dict[str, object]:
     return {
-        "includedScope": [
-            "system-main",
-        ],
-        "explicitOutOfScope": ["adjacent roadmap"],
+        "id": "feature-password-recovery",
+        "name": "Password Recovery",
+        "goal": "Restore account access without widening scope.",
+        "includedScope": ["password reset", "self-service recovery"],
+        "explicitOutOfScope": ["admin triage", "future auth platform"],
     }
 
 
@@ -260,8 +306,9 @@ def test_feature_scope_rejects_adjacent_or_future_scope_entries() -> None:
         },
     )
     result = DOCTOR_CHECKS._check_feature_scope(context)
-    assert result.status == "pass"
+    assert result.status == "fail"
     assert result.severity == "blocking"
+    assert "full system" in result.references[0]
 
 
 def test_traceability_identifies_unresolved_references(tmp_path: Path) -> None:
@@ -281,16 +328,16 @@ def test_traceability_identifies_unresolved_references(tmp_path: Path) -> None:
     )
     result = DOCTOR_CHECKS._check_traceability(context)
 
-    assert result.status == "warning"
-    assert result.severity == "advisory"
-    assert "does not resolve" in result.message
+    assert result.status == "fail"
+    assert result.severity == "blocking"
+    assert "lineage gaps" in result.message
 
 
 def test_context_readiness_requires_required_inputs(tmp_path: Path) -> None:
     context = _build_ok_context(tmp_path)
     packet = _base_packet_payload()
     packet.pop("bmadConsumerHints")
-    packet["roles"] = []
+    packet.pop("openQuestions")
     context = DOCTOR_CHECKS.DoctorCheckContext(
         landscape_state=context.landscape_state,
         derived_graph=context.derived_graph,
@@ -302,6 +349,25 @@ def test_context_readiness_requires_required_inputs(tmp_path: Path) -> None:
     assert result.status == "warning"
     assert result.severity == "advisory"
     assert "prdInput" in result.references[0]
+
+
+def test_schema_validity_fails_for_invalid_packet_candidate(tmp_path: Path) -> None:
+    context = _build_ok_context(tmp_path)
+    packet = _base_packet_payload()
+    packet.pop("packetId")
+    context = DOCTOR_CHECKS.DoctorCheckContext(
+        landscape_state=context.landscape_state,
+        derived_graph=context.derived_graph,
+        packet_candidate=packet,
+        selected_feature=_base_selected_feature(),
+        docs_path=context.docs_path,
+    )
+
+    result = DOCTOR_CHECKS._check_schema_validity(context)
+
+    assert result.status == "fail"
+    assert result.severity == "blocking"
+    assert any("packet.packetId" in reference for reference in result.references)
 
 
 def test_write_boundary_blocks_non_contained_targets(tmp_path: Path) -> None:
@@ -387,7 +453,8 @@ def test_run_preflight_doctor_checks_prompts_for_advisory_and_uses_operator_resp
 ) -> None:
     context = _build_ok_context(tmp_path)
     packet = _base_packet_payload()
-    packet["trace"]["systemId"] = "system-missing"
+    packet.pop("openQuestions")
+    packet.pop("risks")
     context = DOCTOR_CHECKS.DoctorCheckContext(
         landscape_state=context.landscape_state,
         derived_graph=context.derived_graph,
